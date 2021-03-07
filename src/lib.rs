@@ -47,7 +47,7 @@ pub extern "C" fn start(mut data: DataStruct) -> DataStruct{
 // This function is run every frame
 #[no_mangle]
 pub extern "C" fn update(mut data: DataStruct) -> DataStruct{
-    let tag = String::new(CString::new("Player").unwrap()).unwrap(); // Get the tag for "Player"
+    let tag = String::from_str("Player").unwrap(); // Get the tag for "Player"
 
     let player_obj = data.game_object.get_gameobject_from_tag(tag); // Get the game object associated with the tag
 

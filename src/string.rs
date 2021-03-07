@@ -15,8 +15,50 @@ pub struct String<'a>{
 }
 
 impl<'a> String<'a>{
-    pub fn new(value: CString) -> Result<Self, &'a str>{
+    pub fn from_cstring(value: CString) -> Result<Self, &'a str>{
         let ptr = value.into_raw() as *mut c_char;
+
+        if ptr == NULL{
+            return Err("Error - pointer is null");
+        }
+        let string = unsafe{ CStr::from_ptr(ptr) };
+
+        Ok(Self{
+            ptr,
+            string
+        })
+    }
+
+    pub fn from_str(value: &str) -> Result<Self, &'a str>{
+        let ptr = value.as_ptr() as *mut c_char;
+
+        if ptr == NULL{
+            return Err("Error - pointer is null");
+        }
+        let string = unsafe{ CStr::from_ptr(ptr) };
+
+        Ok(Self{
+            ptr,
+            string
+        })
+    }
+
+    pub fn from_string(value: std::string::String) -> Result<Self, &'a str>{
+        let ptr = value.as_ptr() as *mut c_char;
+
+        if ptr == NULL{
+            return Err("Error - pointer is null");
+        }
+        let string = unsafe{ CStr::from_ptr(ptr) };
+
+        Ok(Self{
+            ptr,
+            string
+        })
+    }
+
+    pub fn from_cstr(value: &CStr) -> Result<Self, &'a str>{
+        let ptr = value.as_ptr() as *mut c_char;
 
         if ptr == NULL{
             return Err("Error - pointer is null");
