@@ -3,7 +3,7 @@ use std::{ffi::{CStr, CString}};
 use libc::c_char;
 
 
-use crate::NULL;
+use crate::{NULL, free_ptr};
 
 /// # String
 ///
@@ -32,6 +32,6 @@ impl<'a> String<'a>{
 
 impl<'a> Drop for String<'a>{
     fn drop(&mut self) {
-        self.ptr = NULL;
+        free_ptr(self.ptr);
     }
 }
