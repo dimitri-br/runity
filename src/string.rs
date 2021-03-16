@@ -32,7 +32,7 @@ impl<'a> String<'a>{
 
     /// Create a new `String` from a `str`
     pub fn from_str(value: &str) -> Result<Self, &'a str>{
-        let ptr = value.as_ptr() as *mut c_char;
+        let ptr = CString::new(value).unwrap().into_raw() as *mut c_char;
 
         if ptr == NULL{
             return Err("Error - pointer is null");
@@ -47,7 +47,7 @@ impl<'a> String<'a>{
 
     /// Create a new `String` from an `std::string::String`
     pub fn from_string(value: std::string::String) -> Result<Self, &'a str>{
-        let ptr = value.as_ptr() as *mut c_char;
+        let ptr = CString::new(value).unwrap().into_raw() as *mut c_char;
 
         if ptr == NULL{
             return Err("Error - pointer is null");
