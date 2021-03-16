@@ -1,4 +1,5 @@
 mod vector3;
+mod quaternion;
 mod transform;
 mod math;
 mod data;
@@ -23,3 +24,4 @@ pub use gameobject::GameObject;
 pub use math::Math;
 pub use data::DataStruct;
 pub use string::String;
+pub use quaternion::Quaternion;
