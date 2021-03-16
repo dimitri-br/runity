@@ -19,8 +19,10 @@ impl Vector3{
             z
         }
     }
+}
 
-    /* Functions to help with Vector3 usage */
+/* Functions to help with Vector3 usage */
+impl Vector3{
 
     /// # Translate
     ///
@@ -38,5 +40,51 @@ impl Vector3{
             Math::lerp(start.y, end.y, t),
             Math::lerp(start.z, end.z, t),
         )
+    }
+
+    pub fn normalize(value: Self) -> Self{
+        let magnitude: f32 = Vector3::magnitude(value);
+        Self::new(
+            value.x / magnitude,
+            value.y / magnitude,
+            value.z / magnitude
+        )
+    }
+
+    pub fn magnitude(value: Self) -> f32{
+        (value.x * value.x + value.y * value.y).sqrt()
+    }
+
+    pub fn sqr_magnitude(value: Self) -> f32{
+        value.x * value.x + value.y * value.y
+    }
+}
+
+/* Static properties (such as Up, Down etc) */
+impl Vector3{
+    pub fn back() -> Self{
+        Self::new(0.0, 0.0, -1.0)
+    }
+    pub fn forward() -> Self{
+        Self::new(0.0, 0.0, 1.0)
+    }
+    pub fn left() -> Self{
+        Self::new(-1.0, 0.0, 0.0)
+    }
+    pub fn right() -> Self{
+        Self::new(1.0, 0.0, 0.0)
+    }
+    pub fn down() -> Self{
+        Self::new(0.0, -1.0, 0.0)
+    }
+    pub fn up() -> Self{
+        Self::new(0.0, 1.0, 0.0)
+    }
+
+    pub fn one() -> Self{
+        Self::new(1.0, 1.0, 1.0)
+    }
+    pub fn zero() -> Self{
+        Self::new(0.0, 0.0, 0.0)
     }
 }

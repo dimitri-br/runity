@@ -12,3 +12,4 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 libc = "*"
+num = "0.3"
