@@ -1,7 +1,19 @@
 use crate::Math;
 
+/// # Vector3
+/// 
+/// This struct reimplements the Vector3 class as a struct in rust.
+/// It inherits its structure from C as this data is able to be passed from c# into
+/// rust and vice versa through FFI (It does this by being stored in the `transform` struct,
+/// which is stored in the `DataStruct` struct which is what is being passed around).
+/// It aims to implement as many functions possible from
+/// c# so rust will be able to get maximal performance and compatibility with
+/// unity.
+///
+/// It uses almost exclusively `f32` as that is the standard unit of measurement in
+/// unity. 
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vector3{
     pub x: f32,
     pub y: f32,

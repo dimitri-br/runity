@@ -15,6 +15,7 @@ pub struct String<'a>{
 }
 
 impl<'a> String<'a>{
+    /// Create a new `String` from a `CString`
     pub fn from_cstring(value: CString) -> Result<Self, &'a str>{
         let ptr = value.into_raw() as *mut c_char;
 
@@ -29,6 +30,7 @@ impl<'a> String<'a>{
         })
     }
 
+    /// Create a new `String` from a `str`
     pub fn from_str(value: &str) -> Result<Self, &'a str>{
         let ptr = value.as_ptr() as *mut c_char;
 
@@ -43,6 +45,7 @@ impl<'a> String<'a>{
         })
     }
 
+    /// Create a new `String` from an `std::string::String`
     pub fn from_string(value: std::string::String) -> Result<Self, &'a str>{
         let ptr = value.as_ptr() as *mut c_char;
 
@@ -57,6 +60,7 @@ impl<'a> String<'a>{
         })
     }
 
+    /// Create a new `String` from a `CStr`
     pub fn from_cstr(value: &CStr) -> Result<Self, &'a str>{
         let ptr = value.as_ptr() as *mut c_char;
 
@@ -72,6 +76,7 @@ impl<'a> String<'a>{
     }
 }
 
+/// Not sure if this is needed
 impl<'a> Drop for String<'a>{
     fn drop(&mut self) {
         free_ptr(self.ptr);
