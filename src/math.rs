@@ -147,4 +147,20 @@ impl Math{
     pub fn cos<T>(f: T) -> T where T: Float, f32: Into<T>{
         f.cos()
     }
+
+
+    /// # Exp
+    ///
+    /// Returns `e` raised to `f`
+    pub fn exp<T>(f: T) -> T where T: Float, f32: Into<T>{
+        f.exp()
+    }
+
+    /// # Float to half
+    ///
+    /// Return float `f` as a half.
+    /// (Currently not working)
+    pub fn float_to_half<T>(f: T) -> u32 where T: Float, f32: Into<T>, T: Into<u32>{
+        f.into()
+    }
 }
