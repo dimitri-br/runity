@@ -1,6 +1,6 @@
 use std::ops::BitAnd;
 
-use num::{CheckedSub, Float, Integer};
+use num::{Float, Integer};
 
 use crate::Vector3;
 
@@ -26,6 +26,18 @@ impl Math{
     /// Returns the arc-cosine of `f` - the angle in radians whose cosine is `f`.
     pub fn acos<T>(f: T) -> T where T: Float{
         f.acos()
+    }
+
+    // Compares two floating point values if they are similar.
+    pub fn approximately<T>(a: T, b: T) -> bool where T: Float, f32: Into<T>{
+        // If a or b is zero, compare that the other is less or equal to epsilon.
+        // If neither a or b are 0, then find an epsilon that is good for
+        // comparing numbers at the maximum magnitude of a and b.
+        // Floating points have about 7 significant digits, so
+        // 1.000001f can be represented while 1.0000001f is rounded to zero,
+        // thus we could use an epsilon of 0.000001f for comparing values close to 1.
+        // We multiply this epsilon by the biggest magnitude of a and b.
+        Math::abs(b - a) < Math::max(0.000001.into() * Math::max(Math::abs(a),  Math::abs(b)), Math::pow(2.0.into(), -126.0.into()) * 8.0.into())
     }
 
     /// # Asin

@@ -1,0 +1,14 @@
+[package]
+name = "your_package_name"
+version = "0.1.0"
+authors = ["Your Name <your.name@mail.com>"]
+edition = "2018"
+
+# This is a small example script that can be used as a base to start runity projects
+
+[lib]
+name = "dll_name"
+crate-type = ["cdylib"]
+
+[dependencies]
+runity = { git = "https://github.com/dimitribobkov/runity.git" } # This will be always up to date.
