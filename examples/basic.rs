@@ -1,9 +1,12 @@
-use runity::{DataStruct, Vector3, String};
+use runity::{DataStruct, Quaternion, String, Vector3};
 
 /* We now define some functions
    These are core functions that if not included,
    will not be run.
 */
+fn main(){
+
+}
 
 // This function is called when the script is first run
 #[no_mangle]
@@ -27,7 +30,11 @@ pub extern "C" fn update(mut data: DataStruct) -> DataStruct{
 
     let pos_to_go_towards = player_obj.transform.position; // get the position of the player
 
+    let rotation = data.transform.rotation * Quaternion::from_euler(90.0, 0.0, 0.0); // rotate by 90 degrees
+
     data.transform.position = Vector3::lerp(data.transform.position, pos_to_go_towards, 0.00015); // move towards the player using lerp
+
+    data.transform.rotation = rotation;
 
     data
 }
