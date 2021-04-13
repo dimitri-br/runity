@@ -161,6 +161,12 @@ namespace runity_test
 
             }
         }
+
+        // Cleanup
+        private void OnDestroy()
+        {
+            DLLPool.UnloadAll();
+        }
     }
 }
 

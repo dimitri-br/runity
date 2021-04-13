@@ -23,11 +23,12 @@ namespace runity_test
         // Our DLL name
         public string DLLName = "runity.dll";
 
-        // Error text
-        public TMP_Text errorText;
 
         // A copy of our position
         public Vector3 position;
+
+        // A copy of our rotation
+        public Quaternion rotation;
 
         // Some variables to store per update info
         public GameObject m_gameObject;
@@ -38,9 +39,6 @@ namespace runity_test
         // processing time reloading the DLL
         StartDelegate start;
         UpdateDelegate update;
-
-        // A pointer to our loaded DLL so we can free it on exit
-        IntPtr loadedDLLPtr;
 
         // An object pool to avoid calling Find on gameobjects every frame
         Dictionary<string, UnityEngine.GameObject> objectPool = new Dictionary<string, UnityEngine.GameObject>();
@@ -86,6 +84,7 @@ namespace runity_test
         public struct Transform
         {
             public Vector3 position;
+            public Quaternion rotation;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -163,6 +162,7 @@ namespace runity_test
                 m_gameObject = dataStruct.gameObject;
                 m_transform = dataStruct.transform;
                 position = m_transform.position;
+                rotation = m_transform.rotation;
 
                 NativeMethods.Free(dataStruct.gameObject.tag);
             }
