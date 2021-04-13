@@ -74,6 +74,15 @@ namespace runity_test
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        public struct Quaternion
+        {
+            public float x;
+            public float y;
+            public float z;
+            public float w;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         public struct Transform
         {
             public Vector3 position;
@@ -140,6 +149,7 @@ namespace runity_test
             if (runStart)
             {
                 m_transform.position = new Vector3 { x = 0, y = 0, z = 0 };
+                m_transform.rotation = new Quaternion { x= 0, y = 0, z = 0, w = 0 };
 
                 m_gameObject.transform = m_transform;
                 m_gameObject.GetGameObjectByTag = new FindGameObjectWithTagDelegate(GetGameObjectFromTag);
@@ -175,8 +185,10 @@ namespace runity_test
                 m_gameObject = dataStruct.gameObject;
                 m_transform = dataStruct.transform;
                 position = m_transform.position;
+                rotation = m_transform.rotation;
 
                 transform.position = new UnityEngine.Vector3(position.x, position.y, position.z);
+                transform.rotation = new UnityEngine.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
 
                 NativeMethods.Free(dataStruct.gameObject.tag);
             }
@@ -202,40 +214,57 @@ namespace runity_test
 
             // We check if the object with its tag is not already pooled. If it is, we make sure it hasn't been destroyed and then take it from the pool.
             // otherwise, we load it and add it to the pool
-            if (objectPool.ContainsKey(Marshal.PtrToStringAnsi(tag)))
+
+            string string_tag = Marshal.PtrToStringAnsi(tag); // try and save some processing time by storing the tag as a string beforehand.
+
+            Debug.Log("Finding gameobject with tag: " + string_tag);
+
+            if (objectPool.ContainsKey(string_tag))
             {
-                UnityEngine.GameObject foundObj = objectPool[Marshal.PtrToStringAnsi(tag)];
+                UnityEngine.GameObject foundObj = objectPool[string_tag];
                 if (foundObj == null)
                 {
-                    foundObj = UnityEngine.GameObject.FindGameObjectWithTag(Marshal.PtrToStringAnsi(tag));
-                    Transform transform = new Transform { position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z } };
+                    foundObj = UnityEngine.GameObject.FindGameObjectWithTag(string_tag);
+                    Transform transform = new Transform { 
+                        position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
+                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w} 
+                        };
                     gameObject.transform = transform;
                     gameObject.tag = tag;
-                    objectPool.Add(Marshal.PtrToStringAnsi(tag), foundObj);
+                    objectPool.Add(string_tag, foundObj);
                 }
                 else
                 {
-                    Transform transform = new Transform { position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z } };
+                    Transform transform = new Transform { 
+                        position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
+                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w} 
+                        };                   
                     gameObject.transform = transform;
                     gameObject.tag = tag;
                 }
             }
             else
             {
-                UnityEngine.GameObject foundObj = UnityEngine.GameObject.FindGameObjectWithTag(Marshal.PtrToStringAnsi(tag));
+                UnityEngine.GameObject foundObj = UnityEngine.GameObject.FindGameObjectWithTag(string_tag);
                 if (foundObj == null)
                 {
-                    Debug.LogWarning("Warning: Tag -> " + Marshal.PtrToStringAnsi(tag) + " was not found. Falling back to default transform. ");
-                    Transform transform = new Transform { position = new Vector3 { x = 0, y = 0, z = 0 } };
+                    Debug.LogWarning("Warning: Tag -> " + string_tag + " was not found. Falling back to default transform. ");
+                    Transform transform = new Transform { 
+                        position = new Vector3 { x = 0, y = 0, z = 0 },
+                        rotation = new Quaternion { x = 0, y = 0, z = 0, w = 0 }
+                        };
                     gameObject.transform = transform;
                     gameObject.tag = tag;
                 }
                 else
                 {
-                    Transform transform = new Transform { position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z } };
+                    Transform transform = new Transform { 
+                        position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
+                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w} 
+                        };
                     gameObject.transform = transform;
                     gameObject.tag = tag;
-                    objectPool.Add(Marshal.PtrToStringAnsi(tag), foundObj);
+                    objectPool.Add(string_tag, foundObj);
                 }
             }
 

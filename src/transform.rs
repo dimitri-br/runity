@@ -1,4 +1,4 @@
-use crate::Vector3;
+use crate::{Vector3, Quaternion};
 /// # Transform
 /// 
 /// This struct represents a transform in unity. It will aim, like the `GameObject` struct,
@@ -8,15 +8,17 @@ use crate::Vector3;
 #[repr(C)]
 pub struct Transform{
     pub position: Vector3,
+    pub rotation: Quaternion,
 }
 
 impl Transform{
     /// # New
     ///
     /// Creates a new `Transform` struct from a position (`Vector3`)
-    pub fn new(position: Vector3) -> Self{
+    pub fn new(position: Vector3, rotation: Quaternion) -> Self{
         Self{
-            position
+            position,
+            rotation
         }
     }
 }

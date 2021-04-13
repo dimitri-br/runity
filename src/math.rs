@@ -304,7 +304,7 @@ impl Math{
     /// Generate 2D Perlin noise.
     ///
     /// NOTE: This is currently not working 
-    pub fn perlin_noise<T>(x: T, y: T) -> T where T: Float, f32: Into<T>{
+    pub fn perlin_noise<T>(x: T, _y: T) -> T where T: Float, f32: Into<T>{
         x
     }
 
@@ -359,7 +359,7 @@ impl Math{
     ///
     /// **NOTE: This will not work *properly* until time related variables are added. Until then, feel free to use with placeholder values
     /// for `delta_time`**
-    pub fn smooth_damp<T>(current: T, mut target: T, mut current_velocity: T, mut smooth_time: T, max_speed: T, delta_time: T) -> T where T: Float, f32: Into<T>{
+    pub fn smooth_damp<T>(current: T, mut target: T, current_velocity: &mut T, mut smooth_time: T, max_speed: T, delta_time: T) -> T where T: Float, f32: Into<T>{
         // Based on Game Programming Gems 4 Chapter 1.10
         smooth_time = Math::max(0.0001.into(), smooth_time);
         let omega = 2.0.into() / smooth_time;
@@ -374,15 +374,15 @@ impl Math{
         change = Math::clamp(change, -max_change, max_change);
         target = current - change;
 
-        let temp = (current_velocity + omega * change) * delta_time;
-        current_velocity = (current_velocity - omega * temp) * exp;
+        let temp = (*current_velocity + omega * change) * delta_time;
+        *current_velocity = (*current_velocity - omega * temp) * exp;
         let mut output = target + (change + temp) * exp;
 
         // Prevent overshooting
         if (original_to - current > 0.0.into()) == (output > original_to)
         {
             output = original_to;
-            current_velocity = (output - original_to) / delta_time;
+            *current_velocity = (output - original_to) / delta_time;
         }
 
         return output;
@@ -394,7 +394,7 @@ impl Math{
     ///
     /// **NOTE: This will not work *properly* until time related variables are added. Until then, feel free to use with placeholder values
     /// for `delta_time`**
-    pub fn smooth_damp_angle<T>(current: T, mut target: T, current_velocity: T, smooth_time: T, max_speed: T, delta_time: T) -> T where T: Float, f32: Into<T>{
+    pub fn smooth_damp_angle<T>(current: T, mut target: T, current_velocity: &mut T, smooth_time: T, max_speed: T, delta_time: T) -> T where T: Float, f32: Into<T>{
         target = current + Math::delta_angle(current, target);
         Math::smooth_damp(current, target, current_velocity, smooth_time, max_speed, delta_time)
     }
