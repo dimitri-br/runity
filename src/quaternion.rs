@@ -69,12 +69,12 @@ impl Sub for Quaternion{
 impl Mul for Quaternion{
     type Output = Self;
 
-    fn mul(self, rhs: Self) -> Self::Output {
+    fn mul(self, b: Self) -> Self::Output {
         Self {
-            x: self.x * rhs.x,
-            y: self.y * rhs.y,
-            z: self.z * rhs.z,
-            w: self.w * rhs.w
+            x: self.w * b.w - self.x * b.x - self.y * b.y - self.z * b.z,  // 1
+            y: self.w * b.x + self.x * b.w + self.y * b.z - self.z * b.y,  // i
+            z: self.w * b.y - self.x * b.z + self.y * b.w + self.z * b.x,  // j
+            w: self.w * b.z + self.x * b.y - self.y * b.x + self.z * b.w   // k
         }
     }
 }
