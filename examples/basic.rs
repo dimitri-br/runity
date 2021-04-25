@@ -30,7 +30,7 @@ pub extern "C" fn update(mut data: DataStruct) -> DataStruct{
 
     let pos_to_go_towards = player_obj.transform.position; // get the position of the player
 
-    let rotation = data.transform.rotation * Quaternion::from_euler(2.0, 0.0, 0.0); // rotate by 90 degrees
+    let rotation = data.transform.rotation * Quaternion::from_euler(1.0, 0.0, 0.0); // rotate by 1 degree per frame
 
     data.transform.position = Vector3::lerp(data.transform.position, pos_to_go_towards, 0.00015); // move towards the player using lerp
 
