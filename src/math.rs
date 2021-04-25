@@ -1,4 +1,7 @@
-use std::ops::BitAnd;
+use std::{f32::INFINITY, ops::BitAnd};
+
+use std::f32::consts::{PI};
+use std::f32::EPSILON;
 
 use num::{Float, Integer};
 
@@ -13,6 +16,38 @@ use crate::Vector3;
 /// don't require the UnityEngine API anyways.
 pub struct Math;
 
+/// Constants and static helper functions
+impl Math{
+    /// Degrees-to-radians conversion constant (Read Only).
+    pub const deg2rad: f32 = (PI * 2.0) / 360.0;
+    /// Radians-to-degrees conversion constant (Read Only).
+    pub const rad2deg: f32 = 360.0 / (PI * 2.0);
+    /// A tiny floating point value (Read Only).
+    pub const epsilon: f32 = EPSILON;
+    /// The well-known 3.14159265358979... value (Read Only).
+    pub const pi: f32 = PI;
+    /// A representation of positive infinity (Read Only).
+    pub const infinity: f32 = INFINITY;
+    /// A representation of negative infinity (Read Only).
+    pub const negative_infinity: f32 = -INFINITY;
+
+
+    /// # Deg To Rad
+    ///
+    /// Converts `f` degrees into radians.
+    pub fn deg_to_rad<T>(f: T) -> T where T: Float, f32: Into<T>{
+        f * (PI.into() / 180.0.into()) 
+    }
+
+    /// # Rad To Deg
+    ///
+    /// Converts `f` radians into degrees.
+    pub fn rad_to_deg<T>(f: T) -> T where T: Float, f32: Into<T>{
+        f * (180.0.into() / PI.into()) 
+    }
+}
+
+/// Static Methods
 impl Math{
     /// # Abs
     ///

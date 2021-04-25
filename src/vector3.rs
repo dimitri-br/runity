@@ -1,3 +1,5 @@
+use std::ops::{Add, Div, Mul, Sub};
+
 use crate::Math;
 
 /// # Vector3
@@ -98,5 +100,58 @@ impl Vector3{
     }
     pub fn zero() -> Self{
         Self::new(0.0, 0.0, 0.0)
+    }
+}
+
+impl Add for Vector3{
+    type Output = Vector3;
+
+    fn add(self, rhs: Self::Output) -> Self::Output {
+        Self{
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z
+        }
+    }
+}
+
+impl Sub for Vector3{
+    type Output = Vector3;
+
+    fn sub(self, rhs: Self::Output) -> Self::Output {
+        Self{
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z
+        }
+    }
+}
+
+impl Mul for Vector3{
+    type Output = Vector3;
+
+    fn mul(self, rhs: Self::Output) -> Self::Output {
+        Self{
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z
+        }
+    }
+}
+
+impl Div for Vector3{
+    type Output = Vector3;
+
+    /// # IMPORTANT
+    /// Any attempted division by 0 will simply return 0, rather than attempting the division and panicking.
+    fn div(self, rhs: Self::Output) -> Self::Output {
+        let x = if self.x == 0.0 || rhs.x == 0.0 { 0.0 } else { self.x / rhs.x };
+        let y = if self.y == 0.0 || rhs.y == 0.0 { 0.0 } else { self.y / rhs.y };
+        let z = if self.z == 0.0 || rhs.z == 0.0 { 0.0 } else { self.z / rhs.z };
+        Self{
+            x,
+            y,
+            z
+        }
     }
 }

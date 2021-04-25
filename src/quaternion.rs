@@ -5,6 +5,8 @@
 
 use std::ops::{Add, Sub, Mul, Div};
 
+use crate::{Math, Vector3};
+
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Quaternion{
@@ -27,76 +29,77 @@ impl Quaternion{
         }
     }
 
-    /// # From Euler
+    /// # From Euler 
     ///
-    /// Creates a new Quaternion from Euler angles.
+    /// Creates a new Quaternion from Euler angles (expects degrees).
     pub fn from_euler(x: f32, y: f32, z: f32) -> Self{
-        let x = y.sin() * z.sin() * z.cos() + y.cos() * z.cos() * x.sin();
-        let y = y.sin() * z.cos() * z.cos() + y.cos() * z.sin() * x.sin();
-        let z = y.cos() * z.sin() * z.cos() - y.sin() * z.cos() * x.sin();
-        let w = y.cos() * z.cos() * z.cos() - y.sin() * z.sin() * x.sin();
+        let x = x * Math::deg2rad;
+        let y = y * Math::deg2rad;
+        let z = z * Math::deg2rad;
+
+        let qx = (z/2.0).sin() * (y/2.0).cos() * (x/2.0).cos() - (z/2.0).cos() * (y/2.0).sin() * (x/2.0).sin();
+        let qy = (z/2.0).cos() * (y/2.0).sin() * (x/2.0).cos() + (z/2.0).sin() * (y/2.0).cos() * (x/2.0).sin();
+        let qz = (z/2.0).cos() * (y/2.0).cos() * (x/2.0).sin() - (z/2.0).sin() * (y/2.0).sin() * (x/2.0).cos();
+        let qw = (z/2.0).cos() * (y/2.0).cos() * (x/2.0).cos() + (z/2.0).sin() * (y/2.0).sin() * (x/2.0).sin();
         
-        Quaternion::new(x, y, z, w)
+        Quaternion::new(qx, qy, qz, qw)
+    }
+
+
+    /// # To Euler
+    ///
+    /// Returns the Euler angles of this Quaternion (in degrees).
+    pub fn to_euler(&self) -> Vector3{
+        let (x, y, z, w) = (self.x, self.y, self.z, self.w);
+
+        let t0 = 2.0 * (w * x + y * z);
+        let t1 = 1.0 - 2.0 * (x * x + y * y);
+        let z = Math::atan2(t0, t1);
+
+        let mut t2 = 2.0 * (w * y - z * x);
+        t2 = if t2 > 1.0 { 1.0 } else { t2 };
+        t2 = if t2 < -1.0 { -1.0 } else { t2 };
+        let y = Math::asin(t2);
+
+        let t3 = 2.0 * (w * z + x * y);
+        let t4 = 1.0 - 2.0 * (y * y + z * z);
+        let x = Math::atan2(t3, t4);
+
+        let x = x * Math::rad2deg;
+        let y = y * Math::rad2deg;
+        let z = z * Math::rad2deg;
+
+        Vector3::new(x, y, z)
+    }
+
+    /// # Rotate
+    ///
+    /// Rotate Quaternion `self` by Quaternion `rhs`.
+    pub fn rotate(&mut self, rhs: Self){
+        
+        self.w = -rhs.x * self.x - rhs.y * self.y - rhs.z * self.z + rhs.w * self.w;
+        self.x = rhs.x * self.w + rhs.y * self.z - rhs.z * self.y + rhs.w * self.x;
+        self.y = -rhs.x * self.z + rhs.y * self.w + rhs.z * self.x + rhs.w * self.y;
+        self.z = rhs.x * self.y - rhs.y * self.x + rhs.z * self.w + rhs.w * self.z;
+        
     }
 }
 
-impl Add for Quaternion{
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w
-        }
-    }
-}
-
-impl Sub for Quaternion{
-    type Output = Self;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w
-        }
-    }
-}
 
 impl Mul for Quaternion{
     type Output = Self;
 
-    fn mul(self, b: Self) -> Self::Output {
-        Self {
-            x: self.w * b.w - self.x * b.x - self.y * b.y - self.z * b.z,  // 1
-            y: self.w * b.x + self.x * b.w + self.y * b.z - self.z * b.y,  // i
-            z: self.w * b.y - self.x * b.z + self.y * b.w + self.z * b.x,  // j
-            w: self.w * b.z + self.x * b.y - self.y * b.x + self.z * b.w   // k
-        }
-    }
-}
+    fn mul(self, rhs: Self) -> Self::Output {
+        let w = -rhs.x * self.x - rhs.y * self.y - rhs.z * self.z + rhs.w * self.w;
+        let x = rhs.x * self.w + rhs.y * self.z - rhs.z * self.y + rhs.w * self.x;
+        let y = -rhs.x * self.z + rhs.y * self.w + rhs.z * self.x + rhs.w * self.y;
+        let z = rhs.x * self.y - rhs.y * self.x + rhs.z * self.w + rhs.w * self.z;
 
-impl Div for Quaternion{
-    type Output = Self;
-
-    fn div(self, rhs: Self) -> Self::Output {
-        if rhs.x == 0.0 || rhs.y == 0.0 || rhs.z == 0.0 || rhs.w == 0.0{
-            panic!("Can't divide by 0!")
-        }
-
-        if self.x == 0.0 || self.y == 0.0 || self.z == 0.0 || self.w == 0.0{
-            panic!("Can't divide by 0!")
-        }
-
-
-        Self {
-            x: self.x / rhs.x,
-            y: self.y / rhs.y,
-            z: self.z / rhs.z,
-            w: self.w / rhs.w
+        Self{
+            x, 
+            y, 
+            z, 
+            w
         }
     }
 }
