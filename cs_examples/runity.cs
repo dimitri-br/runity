@@ -148,7 +148,7 @@ namespace runity_test
             if (runStart)
             {
                 m_transform.position = new Vector3 { x = 0, y = 0, z = 0 };
-                m_transform.rotation = new Quaternion { x= 0, y = 0, z = 0, w = 0 };
+                m_transform.rotation = new Quaternion { x= 0, y = .25f, z = 0, w = 1.0f };
 
                 m_gameObject.transform = m_transform;
                 m_gameObject.GetGameObjectByTag = new FindGameObjectWithTagDelegate(GetGameObjectFromTag);
@@ -163,6 +163,9 @@ namespace runity_test
                 m_transform = dataStruct.transform;
                 position = m_transform.position;
                 rotation = m_transform.rotation;
+
+                transform.position = new UnityEngine.Vector3(position.x, position.y, position.z);
+                transform.rotation = new UnityEngine.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
 
                 NativeMethods.Free(dataStruct.gameObject.tag);
             }
@@ -200,8 +203,6 @@ namespace runity_test
             // This is VERY important, we must free and release the link before we exit!
             NativeMethods.Free(m_gameObject.tag);
             Debug.Log("Released pointers properly");
-
-            DLLPool.UnloadAll();
         }
 
 
