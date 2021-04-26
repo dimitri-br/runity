@@ -3,7 +3,7 @@
 /// This module provides access to various functions and
 /// methods used for quaternions in unity.
 
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Mul};
 
 use crate::{Math, Vector3};
 
@@ -33,9 +33,9 @@ impl Quaternion{
     ///
     /// Creates a new Quaternion from Euler angles (expects degrees).
     pub fn from_euler(x: f32, y: f32, z: f32) -> Self{
-        let x = x * Math::deg2rad;
-        let y = y * Math::deg2rad;
-        let z = z * Math::deg2rad;
+        let x = x * Math::DEG2RAD;
+        let y = y * Math::DEG2RAD;
+        let z = z * Math::DEG2RAD;
 
         let qx = (z/2.0).sin() * (y/2.0).cos() * (x/2.0).cos() - (z/2.0).cos() * (y/2.0).sin() * (x/2.0).sin();
         let qy = (z/2.0).cos() * (y/2.0).sin() * (x/2.0).cos() + (z/2.0).sin() * (y/2.0).cos() * (x/2.0).sin();
@@ -65,9 +65,9 @@ impl Quaternion{
         let t4 = 1.0 - 2.0 * (y * y + z * z);
         let x = Math::atan2(t3, t4);
 
-        let x = x * Math::rad2deg;
-        let y = y * Math::rad2deg;
-        let z = z * Math::rad2deg;
+        let x = x * Math::RAD2DEG;
+        let y = y * Math::RAD2DEG;
+        let z = z * Math::RAD2DEG;
 
         Vector3::new(x, y, z)
     }

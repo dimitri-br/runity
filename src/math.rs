@@ -19,17 +19,17 @@ pub struct Math;
 /// Constants and static helper functions
 impl Math{
     /// Degrees-to-radians conversion constant (Read Only).
-    pub const deg2rad: f32 = (PI * 2.0) / 360.0;
+    pub const DEG2RAD: f32 = (PI * 2.0) / 360.0;
     /// Radians-to-degrees conversion constant (Read Only).
-    pub const rad2deg: f32 = 360.0 / (PI * 2.0);
+    pub const RAD2DEG: f32 = 360.0 / (PI * 2.0);
     /// A tiny floating point value (Read Only).
-    pub const epsilon: f32 = EPSILON;
+    pub const EPSILON: f32 = EPSILON;
     /// The well-known 3.14159265358979... value (Read Only).
-    pub const pi: f32 = PI;
-    /// A representation of positive infinity (Read Only).
-    pub const infinity: f32 = INFINITY;
-    /// A representation of negative infinity (Read Only).
-    pub const negative_infinity: f32 = -INFINITY;
+    pub const PI: f32 = PI;
+    /// A representation of positive INFINITY (Read Only).
+    pub const INFINITY: f32 = INFINITY;
+    /// A representation of negative INFINITY (Read Only).
+    pub const NEGATIVE_INFINITY: f32 = -INFINITY;
 
 
     /// # Deg To Rad
@@ -65,13 +65,13 @@ impl Math{
 
     // Compares two floating point values if they are similar.
     pub fn approximately<T>(a: T, b: T) -> bool where T: Float, f32: Into<T>{
-        // If a or b is zero, compare that the other is less or equal to epsilon.
-        // If neither a or b are 0, then find an epsilon that is good for
+        // If a or b is zero, compare that the other is less or equal to EPSILON.
+        // If neither a or b are 0, then find an EPSILON that is good for
         // comparing numbers at the maximum magnitude of a and b.
         // Floating points have about 7 significant digits, so
         // 1.000001f can be represented while 1.0000001f is rounded to zero,
-        // thus we could use an epsilon of 0.000001f for comparing values close to 1.
-        // We multiply this epsilon by the biggest magnitude of a and b.
+        // thus we could use an EPSILON of 0.000001f for comparing values close to 1.
+        // We multiply this EPSILON by the biggest magnitude of a and b.
         Math::abs(b - a) < Math::max(0.000001.into() * Math::max(Math::abs(a),  Math::abs(b)), Math::pow(2.0.into(), -126.0.into()) * 8.0.into())
     }
 

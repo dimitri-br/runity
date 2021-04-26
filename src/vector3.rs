@@ -1,4 +1,4 @@
-use std::{cmp::max, ops::{Add, Div, Mul, Sub}};
+use std::ops::{Add, Div, Mul, Sub};
 
 use crate::Math;
 
@@ -23,9 +23,9 @@ pub struct Vector3{
 }
 
 impl Vector3{
-    pub const k_epsilon: f32 = 0.00001;
+    pub const K_EPSILON: f32 = 0.00001;
 
-    pub const k_epsilon_normal_sqrt: f32 = 1e-15;
+    pub const K_EPSILON_NORMAL_SQRT: f32 = 1e-15;
 
     /// # New
     ///
@@ -103,9 +103,9 @@ impl Vector3{
     /// NOTE:
     /// DeltaTime won't work until timing is added to runity.
     pub fn smooth_damp(current: Self, mut target: Self, current_velocity: &mut Self, mut smooth_time: f32, max_speed: f32, delta_time: f32) -> Self{
-        let mut output_x = 0.0;
-        let mut output_y = 0.0;
-        let mut output_z = 0.0;
+        let mut output_x;
+        let mut output_y;
+        let mut output_z;
 
         smooth_time = Math::max(0.00001, smooth_time);
 
@@ -156,7 +156,7 @@ impl Vector3{
         let out_minus_orig_y = output_y - original_to.y;
         let out_minus_orig_z = output_z - original_to.z;
 
-        if orig_minus_current_x * out_minus_orig_x + orig_minus_current_x * out_minus_orig_y + orig_minus_current_z * out_minus_orig_z > 0.0{
+        if orig_minus_current_x * out_minus_orig_x + orig_minus_current_y * out_minus_orig_y + orig_minus_current_z * out_minus_orig_z > 0.0{
             output_x = original_to.x;
             output_y = original_to.y;
             output_z = original_to.z;
@@ -229,7 +229,7 @@ impl Vector3{
     pub fn normalize(value: Self) -> Self{
         let magnitude: f32 = Vector3::magnitude(value);
 
-        if magnitude < Vector3::k_epsilon{
+        if magnitude < Vector3::K_EPSILON{
             return Vector3::zero();
         }
 
@@ -259,7 +259,7 @@ impl Vector3{
     /// Projects one vector onto another vector.
     pub fn project(vector: Self, on_normal: Self) -> Self{
         let sqr_mag = Vector3::dot(on_normal, on_normal);
-        if sqr_mag < Math::epsilon{
+        if sqr_mag < Math::EPSILON{
             return Self::zero();
         }
 
@@ -278,7 +278,7 @@ impl Vector3{
     pub fn project_on_plane(vector: Self, plane_normal: Self) -> Self{
         let sqr_mag = Self::dot(plane_normal, plane_normal);
 
-        if sqr_mag < Math::epsilon{
+        if sqr_mag < Math::EPSILON{
             return vector;
         }
 
@@ -297,13 +297,13 @@ impl Vector3{
     pub fn angle(to: Self, from: Self) -> f32{
         let denominator = Math::sqrt(Self::sqr_magnitude(from) * Self::sqr_magnitude(to));
 
-        if denominator < Self::k_epsilon_normal_sqrt{
+        if denominator < Self::K_EPSILON_NORMAL_SQRT{
             return 0.0;
         }
 
         let dot = Math::clamp(Self::dot(from, to) / denominator, -1.0, 1.0);
 
-        Math::acos(dot) * Math::rad2deg
+        Math::acos(dot) * Math::RAD2DEG
     }
 
     /// # Signed Angle
