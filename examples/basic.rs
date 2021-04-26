@@ -1,4 +1,4 @@
-use runity::{DataStruct, Math, Quaternion, String, Vector3};
+use runity::{DataStruct, Quaternion, String, Vector3};
 
 /* We now define some functions
    These are core functions that if not included,
