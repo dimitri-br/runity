@@ -166,8 +166,6 @@ namespace runity_test
 
                 transform.position = new UnityEngine.Vector3(position.x, position.y, position.z);
                 transform.rotation = new UnityEngine.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
-
-                NativeMethods.Free(dataStruct.gameObject.tag);
             }
         }
 
@@ -192,8 +190,6 @@ namespace runity_test
 
                 transform.position = new UnityEngine.Vector3(position.x, position.y, position.z);
                 transform.rotation = new UnityEngine.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
-
-                NativeMethods.Free(dataStruct.gameObject.tag);
             }
         }
 
@@ -218,8 +214,11 @@ namespace runity_test
 
             string string_tag = Marshal.PtrToStringAnsi(tag); // try and save some processing time by storing the tag as a string beforehand.
 
-            Debug.Log("Finding gameobject with tag: " + string_tag);
-
+            // This long, complex code basically checks that the object exists in the pool. If it doesn't, we add it. 
+            //
+            // It will find the gameobject, find its transforms, then add them to the gameobject that it returns. This should be callable from rust.
+            //
+            // If it doesn't find the gameobject, it defaults to zero for pos and rot. This is simply a fallback.
             if (objectPool.ContainsKey(string_tag))
             {
                 UnityEngine.GameObject foundObj = objectPool[string_tag];
