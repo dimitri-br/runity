@@ -102,7 +102,7 @@ impl Vector3{
     ///
     /// NOTE:
     /// DeltaTime won't work until timing is added to runity.
-    pub fn smooth_damp(current: Self, mut target: Self, current_velocity: &Self, mut smooth_time: f32, max_speed: f32, delta_time: f32) -> Self{
+    pub fn smooth_damp(current: Self, mut target: Self, current_velocity: &mut Self, mut smooth_time: f32, max_speed: f32, delta_time: f32) -> Self{
         let mut output_x = 0.0;
         let mut output_y = 0.0;
         let mut output_z = 0.0;
@@ -156,7 +156,7 @@ impl Vector3{
         let out_minus_orig_y = output_y - original_to.y;
         let out_minus_orig_z = output_z - original_to.z;
 
-        if orig_minus_current_x * out_minus_orig_x + orig_minus_current_x * out_minus_orig_y + orig_minus_current_z * out_minus_orig_z > 0{
+        if orig_minus_current_x * out_minus_orig_x + orig_minus_current_x * out_minus_orig_y + orig_minus_current_z * out_minus_orig_z > 0.0{
             output_x = original_to.x;
             output_y = original_to.y;
             output_z = original_to.z;
@@ -411,7 +411,6 @@ impl Vector3{
         Self::new(0.0, 0.0, 0.0)
     }
 }
-
 
 
 /* Arithmetic for Vector3, so we don't need functions */
