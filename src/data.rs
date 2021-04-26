@@ -1,4 +1,4 @@
-use crate::{GameObject, Transform};
+use crate::{GameObject, Transform, Time};
 
 /// # DataStruct
 ///
@@ -7,5 +7,6 @@ use crate::{GameObject, Transform};
 #[repr(C)]
 pub struct DataStruct{
     pub transform: Transform,
-    pub game_object: GameObject
+    pub game_object: GameObject,
+    pub time: Time,
 }

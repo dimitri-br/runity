@@ -34,6 +34,7 @@ namespace runity_test
         public GameObject m_gameObject;
         public Transform m_transform;
         public DataStruct dataStruct;
+        public Time m_time;
 
         // Our function pointers, so we can recycle them rather than waste
         // processing time reloading the DLL
@@ -100,8 +101,28 @@ namespace runity_test
         {
             public Transform transform;
             public GameObject gameObject;
+            public Time time;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Time
+        {
+            public float deltaTime;
+            public float fixedDeltaTime;
+            public float fixedTime;
+            public float fixedUnscaledDeltaTime;
+            public float fixedUnscaledTime;
+            public float frameCount;
+            public float maximumDeltaTime;
+            public float maximumParticleDeltaTime;
+            public float realTimeSinceStartup;
+            public float smoothDeltaTime;
+            public float time;
+            public float timeScale;
+            public float timeSinceLevelLoad;
+            public float unscaledDeltaTime;
+            public float unscaledTime;
+        }
 
         /* Define our delegates, which are callbacks to functions we want to use 
          * in rust */
@@ -139,6 +160,8 @@ namespace runity_test
             m_transform = new Transform { };
             m_gameObject = new GameObject { };
             dataStruct = new DataStruct { };
+
+            m_time = new Time { };
         }
 
 
@@ -150,14 +173,21 @@ namespace runity_test
                 m_transform.position = new Vector3 { x = 0, y = 0, z = 0 };
                 m_transform.rotation = new Quaternion { x= 0, y = .25f, z = 0, w = 1.0f };
 
+
                 m_gameObject.transform = m_transform;
                 m_gameObject.GetGameObjectByTag = new FindGameObjectWithTagDelegate(GetGameObjectFromTag);
 
                 dataStruct.transform = m_transform;
                 dataStruct.gameObject = m_gameObject;
 
+                SetTime();
+
+                dataStruct.time = m_time;
 
                 dataStruct = start(dataStruct);
+
+                UnityEngine.Time.fixedDeltaTime = dataStruct.time.fixedDeltaTime;
+                UnityEngine.Time.timeScale = dataStruct.time.timeScale;
 
                 m_gameObject = dataStruct.gameObject;
                 m_transform = dataStruct.transform;
@@ -179,9 +209,14 @@ namespace runity_test
                 dataStruct.transform = m_transform;
                 dataStruct.gameObject = m_gameObject;
 
+                SetTime();
+
+                dataStruct.time = m_time;
 
                 dataStruct = update(dataStruct);
 
+                UnityEngine.Time.fixedDeltaTime = dataStruct.time.fixedDeltaTime;
+                UnityEngine.Time.timeScale = dataStruct.time.timeScale;
 
                 m_gameObject = dataStruct.gameObject;
                 m_transform = dataStruct.transform;
@@ -199,6 +234,28 @@ namespace runity_test
             // This is VERY important, we must free and release the link before we exit!
             NativeMethods.Free(m_gameObject.tag);
             Debug.Log("Released pointers properly");
+        }
+
+        /// <summary>
+        /// Update time - should be run *before* submitting data to rust
+        /// </summary>
+        void SetTime()
+        {
+            m_time.deltaTime = UnityEngine.Time.deltaTime;
+            m_time.fixedDeltaTime = UnityEngine.Time.fixedDeltaTime;
+            m_time.fixedTime = UnityEngine.Time.fixedTime;
+            m_time.fixedUnscaledDeltaTime = UnityEngine.Time.fixedUnscaledDeltaTime;
+            m_time.fixedUnscaledTime = UnityEngine.Time.fixedUnscaledTime;
+            m_time.frameCount = UnityEngine.Time.frameCount;
+            m_time.maximumDeltaTime = UnityEngine.Time.maximumDeltaTime;
+            m_time.maximumParticleDeltaTime = UnityEngine.Time.maximumParticleDeltaTime;
+            m_time.realTimeSinceStartup = UnityEngine.Time.realtimeSinceStartup;
+            m_time.smoothDeltaTime = UnityEngine.Time.smoothDeltaTime;
+            m_time.time = UnityEngine.Time.time;
+            m_time.timeScale = UnityEngine.Time.timeScale;
+            m_time.timeSinceLevelLoad = UnityEngine.Time.timeSinceLevelLoad;
+            m_time.unscaledDeltaTime = UnityEngine.Time.unscaledDeltaTime;
+            m_time.unscaledTime = UnityEngine.Time.unscaledTime;
         }
 
 

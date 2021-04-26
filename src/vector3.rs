@@ -100,8 +100,8 @@ impl Vector3{
     ///
     /// Due to lack of function overloading, all parameters must be defined here. 
     ///
-    /// NOTE:
-    /// DeltaTime won't work until timing is added to runity.
+    /// **NOTE: Use `delta_time` present in `data.time` (which is the input variable in start/awake/update functions) for all time related
+    /// variables**
     pub fn smooth_damp(current: Self, mut target: Self, current_velocity: &mut Self, mut smooth_time: f32, max_speed: f32, delta_time: f32) -> Self{
         let mut output_x;
         let mut output_y;

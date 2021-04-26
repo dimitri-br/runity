@@ -392,8 +392,8 @@ impl Math{
     ///
     /// Gradually changes a value towards a desired goal over time.
     ///
-    /// **NOTE: This will not work *properly* until time related variables are added. Until then, feel free to use with placeholder values
-    /// for `delta_time`**
+    /// **NOTE: Use `delta_time` present in `data.time` (which is the input variable in start/awake/update functions) for all time related
+    /// variables**
     pub fn smooth_damp<T>(current: T, mut target: T, current_velocity: &mut T, mut smooth_time: T, max_speed: T, delta_time: T) -> T where T: Float, f32: Into<T>{
         // Based on Game Programming Gems 4 Chapter 1.10
         smooth_time = Math::max(0.0001.into(), smooth_time);
@@ -427,8 +427,8 @@ impl Math{
     ///
     /// Gradually changes an angle given in degrees towards a desired goal angle over time.
     ///
-    /// **NOTE: This will not work *properly* until time related variables are added. Until then, feel free to use with placeholder values
-    /// for `delta_time`**
+    /// **NOTE: Use `delta_time` present in `data.time` (which is the input variable in start/awake/update functions) for all time related
+    /// variables**
     pub fn smooth_damp_angle<T>(current: T, mut target: T, current_velocity: &mut T, smooth_time: T, max_speed: T, delta_time: T) -> T where T: Float, f32: Into<T>{
         target = current + Math::delta_angle(current, target);
         Math::smooth_damp(current, target, current_velocity, smooth_time, max_speed, delta_time)
