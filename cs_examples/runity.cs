@@ -269,6 +269,8 @@ namespace runity_test
             // We check if the object with its tag is not already pooled. If it is, we make sure it hasn't been destroyed and then take it from the pool.
             // otherwise, we load it and add it to the pool
 
+            /// TODO: Optimize this pointer to string. This will allocate a string,
+            /// which will create lag due to GC.Alloc
             string string_tag = Marshal.PtrToStringAnsi(tag); // try and save some processing time by storing the tag as a string beforehand.
 
             // This long, complex code basically checks that the object exists in the pool. If it doesn't, we add it. 

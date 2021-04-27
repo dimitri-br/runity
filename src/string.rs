@@ -11,7 +11,7 @@ use crate::{NULL, free_ptr};
 /// and a respective pointer. Will return an error upon allocation if the pointer is `NULL`
 pub struct String<'a>{
     pub ptr: *mut c_char,
-    pub string: &'a CStr
+    pub string: &'a CStr,
 }
 
 impl<'a> String<'a>{
@@ -71,7 +71,7 @@ impl<'a> String<'a>{
 
         Ok(Self{
             ptr,
-            string
+            string,
         })
     }
 }
