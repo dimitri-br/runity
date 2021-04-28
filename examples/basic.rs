@@ -35,7 +35,7 @@ pub extern "C" fn update(mut data: DataStruct) -> DataStruct{
 
     data.transform.position = Vector3::lerp(data.transform.position, pos_to_go_towards, 0.0015 * time.delta_time); // move towards the player using lerp, scaling to the timestep
 
-    data.transform.rotation = data.transform.rotation * Quaternion::from_euler(5.0 * time.delta_time, 5.0 * time.delta_time, 5.0 * time.delta_time);
+    data.transform.rotation *= Quaternion::from_euler(5.0 * time.delta_time, 5.0 * time.delta_time, 5.0 * time.delta_time);
 
     data
 }

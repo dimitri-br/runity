@@ -3,10 +3,28 @@
 /// This module provides access to various functions and
 /// methods used for quaternions in unity.
 
-use std::ops::{Mul};
+use std::ops::{Mul, MulAssign};
 
 use crate::{Math, Vector3};
 
+/// # Quaternion
+///
+/// This struct reimplements the `Quaternion` in unity.
+///
+/// Quaternions are used to represent rotations, with the added
+/// benefit that they don't suffer from gimbal lock. This struct
+/// provides a safe way to interface with rotations in unity,
+/// and has many quaternion related functions to help.
+///
+/// It takes four `f32`'s:
+///
+/// - `x`
+/// 
+/// - `y`
+///
+/// - `z`
+///
+/// - `w`
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Quaternion{
@@ -101,5 +119,14 @@ impl Mul for Quaternion{
             z, 
             w
         }
+    }
+}
+
+impl MulAssign for Quaternion{
+    fn mul_assign(&mut self, rhs: Self) {
+        self.w = -rhs.x * self.x - rhs.y * self.y - rhs.z * self.z + rhs.w * self.w;
+        self.x = rhs.x * self.w + rhs.y * self.z - rhs.z * self.y + rhs.w * self.x;
+        self.y = -rhs.x * self.z + rhs.y * self.w + rhs.z * self.x + rhs.w * self.y;
+        self.z = rhs.x * self.y - rhs.y * self.x + rhs.z * self.w + rhs.w * self.z;
     }
 }

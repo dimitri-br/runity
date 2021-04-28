@@ -8,15 +8,25 @@ mod string;
 mod time;
 
 
-// Define a NULL ptr for our string. This will help us
-// prevent allocating an invalid string
-pub const NULL: *mut c_char = null::<c_char>() as *mut c_char;
+/// Define a NULL ptr for our string. This will help us
+/// prevent allocating an invalid string
+const NULL: *mut c_char = null::<c_char>() as *mut c_char;
 
-pub fn free_ptr(mut _ptr: *mut i8){
-    _ptr = NULL;
+/// # Free Ptr
+///
+/// Free a pointer
+fn free_ptr(ptr: *mut i8){
+    // This isn't really recommended, but
+    // it's the only real way to generally
+    // free pointers and avoid memory leaks.
+    //
+    // FFI is unsafe :(
+    unsafe{ 
+        libc::free(ptr as *mut c_void); 
+    }
 }
 
-use libc::{c_char};
+use libc::{c_char, c_void};
 use std::{ptr::null};
 
 pub use vector3::Vector3;

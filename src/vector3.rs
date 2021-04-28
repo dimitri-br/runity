@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 use crate::Math;
 
@@ -12,8 +12,13 @@ use crate::Math;
 /// c# so rust will be able to get maximal performance and compatibility with
 /// unity.
 ///
-/// It uses almost exclusively `f32` as that is the standard unit of measurement in
-/// unity. 
+/// It takes three `f32`'s:
+///
+/// - `x`
+/// 
+/// - `y`
+///
+/// - `z`
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vector3{
@@ -23,8 +28,9 @@ pub struct Vector3{
 }
 
 impl Vector3{
+    /// Smallest possible float
     pub const K_EPSILON: f32 = 0.00001;
-
+    /// Smallest possible float, sqrt
     pub const K_EPSILON_NORMAL_SQRT: f32 = 1e-15;
 
     /// # New
@@ -413,7 +419,7 @@ impl Vector3{
 }
 
 
-/* Arithmetic for Vector3, so we don't need functions */
+/* Arithmetic for Vector3, also handles operators */
 
 impl Add for Vector3{
     type Output = Vector3;
@@ -424,6 +430,14 @@ impl Add for Vector3{
             y: self.y + rhs.y,
             z: self.z + rhs.z
         }
+    }
+}
+
+impl AddAssign for Vector3{
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
     }
 }
 
@@ -439,6 +453,14 @@ impl Sub for Vector3{
     }
 }
 
+impl SubAssign for Vector3{
+    fn sub_assign(&mut self, rhs: Self) {
+        self.x -= rhs.x;
+        self.y -= rhs.y;
+        self.z -= rhs.z;
+    }
+}
+
 impl Mul for Vector3{
     type Output = Vector3;
 
@@ -448,6 +470,14 @@ impl Mul for Vector3{
             y: self.y * rhs.y,
             z: self.z * rhs.z
         }
+    }
+}
+
+impl MulAssign for Vector3{
+    fn mul_assign(&mut self, rhs: Self) {
+        self.x *= rhs.x;
+        self.y *= rhs.y;
+        self.z *= rhs.z;
     }
 }
 
@@ -465,5 +495,16 @@ impl Div for Vector3{
             y,
             z
         }
+    }
+}
+
+impl DivAssign for Vector3{
+    
+    /// # IMPORTANT
+    /// Any attempted division by 0 will simply return 0, rather than attempting the division and panicking.
+    fn div_assign(&mut self, rhs: Self) {
+        self.x = if self.x == 0.0 || rhs.x == 0.0 { 0.0 } else { self.x / rhs.x };
+        self.y = if self.y == 0.0 || rhs.y == 0.0 { 0.0 } else { self.y / rhs.y };
+        self.z = if self.z == 0.0 || rhs.z == 0.0 { 0.0 } else { self.z / rhs.z };
     }
 }

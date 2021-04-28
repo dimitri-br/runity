@@ -22,6 +22,9 @@ pub struct GameObject{
 }
 
 impl GameObject{
+    /// # Get GameObject from tag
+    ///
+    /// Takes a string, returns the gameobject attached to the associated tag.
     pub fn get_gameobject_from_tag(&self, tag: String) -> Self{
         (self.get_gameobject_from_tag_callback)(tag.ptr, tag.len)
     }
