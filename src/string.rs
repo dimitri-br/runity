@@ -15,75 +15,81 @@ pub struct String<'a>{
     pub len: i32,
 }
 
-impl<'a> String<'a>{
+impl<'a> From<CString> for String<'a>{
     /// Create a new `String` from a `CString`
-    pub fn from_cstring(value: CString) -> Result<Self, &'a str>{
+    fn from(value: CString) -> Self{
         let len = value.to_str().unwrap().len() as i32;
         let ptr = value.into_raw() as *mut c_char;
 
         if ptr == NULL{
-            return Err("Error - pointer is null");
+            panic!("Error - pointer is null");
         }
         let string = unsafe{ CStr::from_ptr(ptr) };
 
-        Ok(Self{
+        Self{
             ptr,
             string,
             len
-        })
+        }
     }
+}
 
+impl<'a> From<&'a str> for String<'a>{
     /// Create a new `String` from a `str`
-    pub fn from_str(value: &str) -> Result<Self, &'a str>{
+    fn from(value: &str) -> Self{
         let len = value.len() as i32;
 
         let ptr = CString::new(value).unwrap().into_raw() as *mut c_char;
 
         if ptr == NULL{
-            return Err("Error - pointer is null");
+            panic!("Error - pointer is null");
         }
         let string = unsafe{ CStr::from_ptr(ptr) };
 
-        Ok(Self{
+        Self{
             ptr,
             string,
             len
-        })
+        }
     }
+}
 
+impl<'a> From<std::string::String> for String<'a>{
     /// Create a new `String` from an `std::string::String`
-    pub fn from_string(value: std::string::String) -> Result<Self, &'a str>{
+    fn from(value: std::string::String) -> Self{
         let len = value.len() as i32;
         let ptr = CString::new(value).unwrap().into_raw() as *mut c_char;
 
         if ptr == NULL{
-            return Err("Error - pointer is null");
+            panic!("Error - pointer is null");
         }
         let string = unsafe{ CStr::from_ptr(ptr) };
 
-        Ok(Self{
+        Self{
             ptr,
             string,
             len
-        })
+        }
     }
+}
 
+impl<'a> From<&'a CStr> for String<'a>{
     /// Create a new `String` from a `CStr`
-    pub fn from_cstr(value: &CStr) -> Result<Self, &'a str>{
+    fn from(value: &CStr) -> Self{
         let len = value.to_str().unwrap().len() as i32;
 
         let ptr = value.as_ptr() as *mut c_char;
 
         if ptr == NULL{
-            return Err("Error - pointer is null");
+            panic!("Error - pointer is null");
         }
         let string = unsafe{ CStr::from_ptr(ptr) };
 
-        Ok(Self{
+        Self{
             ptr,
             string,
             len
-        })
+        }
     }
 }
 
