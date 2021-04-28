@@ -274,10 +274,9 @@ namespace runity_test
             // We check if the object with its tag is not already pooled. If it is, we make sure it hasn't been destroyed and then take it from the pool.
             // otherwise, we load it and add it to the pool
 
-            /// TODO: Optimize this pointer to string. This will allocate a string,
-            /// which will create lag due to GC.Alloc
-            //string string_tag = Marshal.PtrToStringAnsi(tag); // try and save some processing time by storing the tag as a string beforehand.
-
+           // This will convert the pointer to a stringbuilder,
+           // which is a 0 alloc and fast alternative to a string.
+           // This is what we use to index the dictionary.
 
             stringBuilder.Clear();
 
@@ -291,35 +290,31 @@ namespace runity_test
             // It will find the gameobject, find its transforms, then add them to the gameobject that it returns. This should be callable from rust.
             //
             // If it doesn't find the gameobject, it defaults to zero for pos and rot. This is simply a fallback.
-            if (objectPool.ContainsKey(stringBuilder))
+            UnityEngine.GameObject foundObj;
+
+            if (objectPool.TryGetValue(stringBuilder, out foundObj))
             {
-                UnityEngine.GameObject foundObj = objectPool[stringBuilder];
+                // Make sure it isn't a false positive, and return the value.
+                // If it is, find it and store it.
                 if (foundObj == null)
                 {
                     foundObj = UnityEngine.GameObject.FindGameObjectWithTag(stringBuilder.ToString());
-                    Transform transform = new Transform
-                    {
-                        position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
-                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w }
-                    };
-                    gameObject.transform = transform;
-                    gameObject.tag = tag;
                     objectPool.Add(stringBuilder, foundObj);
                 }
-                else
+
+                Transform transform = new Transform
                 {
-                    Transform transform = new Transform
-                    {
-                        position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
-                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w }
-                    };
-                    gameObject.transform = transform;
-                    gameObject.tag = tag;
-                }
+                    position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
+                    rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w }
+                };
+                gameObject.transform = transform;
+                gameObject.tag = tag;
             }
             else
             {
-                UnityEngine.GameObject foundObj = UnityEngine.GameObject.FindGameObjectWithTag(stringBuilder.ToString());
+                // Our requested object hasn't been found, so now we search it. If it doesn't exist, return
+                // a default value. If it does, store it and return the value.
+                foundObj = UnityEngine.GameObject.FindGameObjectWithTag(stringBuilder.ToString());
                 if (foundObj == null)
                 {
                     Debug.LogWarning("Warning: Tag -> " + stringBuilder.ToString()  + " was not found. Falling back to default transform. ");
