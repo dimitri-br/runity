@@ -4,6 +4,8 @@ using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.Scripting;
+using System.Text;
+using System.Reflection;
 
 [assembly: Preserve]
 
@@ -16,7 +18,7 @@ using UnityEngine.Scripting;
 
 namespace runity_test
 {
-    public class runity: MonoBehaviour
+    public class runity : MonoBehaviour
     {
         /* Variables */
 
@@ -41,8 +43,11 @@ namespace runity_test
         StartDelegate start;
         UpdateDelegate update;
 
+        // A string builder to go from pointer to string, GC free. Only supports 128 chars
+        StringBuilder stringBuilder = new StringBuilder(128, 128);
+
         // An object pool to avoid calling Find on gameobjects every frame
-        Dictionary<string, UnityEngine.GameObject> objectPool = new Dictionary<string, UnityEngine.GameObject>();
+        Dictionary<StringBuilder, UnityEngine.GameObject> objectPool = new Dictionary<StringBuilder, UnityEngine.GameObject>();
 
         // We use these booleans to check if we should run the respective unity functions.
         // This is so we can check collisions conditionally.
@@ -126,7 +131,7 @@ namespace runity_test
 
         /* Define our delegates, which are callbacks to functions we want to use 
          * in rust */
-        public delegate GameObject FindGameObjectWithTagDelegate(IntPtr name); // This delegate acts as FindGameObjectWithTag
+        public delegate GameObject FindGameObjectWithTagDelegate(IntPtr name, int len); // This delegate acts as FindGameObjectWithTag
 
 
         /* Run built-in unity functions */
@@ -171,7 +176,7 @@ namespace runity_test
             if (runStart)
             {
                 m_transform.position = new Vector3 { x = 0, y = 0, z = 0 };
-                m_transform.rotation = new Quaternion { x= 0, y = .25f, z = 0, w = 1.0f };
+                m_transform.rotation = new Quaternion { x = 0, y = .25f, z = 0, w = 1.0f };
 
 
                 m_gameObject.transform = m_transform;
@@ -262,66 +267,80 @@ namespace runity_test
         /* We can now define the functions we want to expose to rust */
 
         // This method converts `FindGameObjectWithTag` into our custom defined structs
-        public GameObject GetGameObjectFromTag(IntPtr tag)
+        public GameObject GetGameObjectFromTag(IntPtr tag, int len)
         {
             GameObject gameObject = new GameObject { transform = new Transform { position = new Vector3 { x = 0, y = 0, z = 0, } } };
 
             // We check if the object with its tag is not already pooled. If it is, we make sure it hasn't been destroyed and then take it from the pool.
             // otherwise, we load it and add it to the pool
 
-            string string_tag = Marshal.PtrToStringAnsi(tag); // try and save some processing time by storing the tag as a string beforehand.
+            /// TODO: Optimize this pointer to string. This will allocate a string,
+            /// which will create lag due to GC.Alloc
+            //string string_tag = Marshal.PtrToStringAnsi(tag); // try and save some processing time by storing the tag as a string beforehand.
+
+
+            stringBuilder.Clear();
+
+            for (int i = 0; i < len; i++)
+            {
+                stringBuilder.Append((char)Marshal.ReadByte(tag + i));
+            }
 
             // This long, complex code basically checks that the object exists in the pool. If it doesn't, we add it. 
             //
             // It will find the gameobject, find its transforms, then add them to the gameobject that it returns. This should be callable from rust.
             //
             // If it doesn't find the gameobject, it defaults to zero for pos and rot. This is simply a fallback.
-            if (objectPool.ContainsKey(string_tag))
+            if (objectPool.ContainsKey(stringBuilder))
             {
-                UnityEngine.GameObject foundObj = objectPool[string_tag];
+                UnityEngine.GameObject foundObj = objectPool[stringBuilder];
                 if (foundObj == null)
                 {
-                    foundObj = UnityEngine.GameObject.FindGameObjectWithTag(string_tag);
-                    Transform transform = new Transform { 
+                    foundObj = UnityEngine.GameObject.FindGameObjectWithTag(stringBuilder.ToString());
+                    Transform transform = new Transform
+                    {
                         position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
-                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w} 
-                        };
+                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w }
+                    };
                     gameObject.transform = transform;
                     gameObject.tag = tag;
-                    objectPool.Add(string_tag, foundObj);
+                    objectPool.Add(stringBuilder, foundObj);
                 }
                 else
                 {
-                    Transform transform = new Transform { 
+                    Transform transform = new Transform
+                    {
                         position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
-                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w} 
-                        };                   
+                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w }
+                    };
                     gameObject.transform = transform;
                     gameObject.tag = tag;
                 }
             }
             else
             {
-                UnityEngine.GameObject foundObj = UnityEngine.GameObject.FindGameObjectWithTag(string_tag);
+                UnityEngine.GameObject foundObj = UnityEngine.GameObject.FindGameObjectWithTag(stringBuilder.ToString());
                 if (foundObj == null)
                 {
-                    Debug.LogWarning("Warning: Tag -> " + string_tag + " was not found. Falling back to default transform. ");
-                    Transform transform = new Transform { 
+                    Debug.LogWarning("Warning: Tag -> " + stringBuilder.ToString()  + " was not found. Falling back to default transform. ");
+                    Transform transform = new Transform
+                    {
                         position = new Vector3 { x = 0, y = 0, z = 0 },
                         rotation = new Quaternion { x = 0, y = 0, z = 0, w = 0 }
-                        };
+                    };
                     gameObject.transform = transform;
                     gameObject.tag = tag;
                 }
                 else
                 {
-                    Transform transform = new Transform { 
+                    Transform transform = new Transform
+                    {
                         position = new Vector3 { x = foundObj.transform.position.x, y = foundObj.transform.position.y, z = foundObj.transform.position.z },
-                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w} 
-                        };
+                        rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w }
+                    };
                     gameObject.transform = transform;
                     gameObject.tag = tag;
-                    objectPool.Add(string_tag, foundObj);
+                    objectPool.Add(stringBuilder, foundObj);
                 }
             }
 
