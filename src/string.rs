@@ -12,10 +12,7 @@ use crate::{NULL, free_ptr};
 pub struct String<'a>{
     pub ptr: *mut c_char,
     pub string: &'a CStr,
-<<<<<<< HEAD
     pub len: i32,
-=======
->>>>>>> 197e7618634f0502bb373e3eb031cb7f70ae5e5a
 }
 
 impl<'a> String<'a>{
@@ -85,10 +82,7 @@ impl<'a> String<'a>{
         Ok(Self{
             ptr,
             string,
-<<<<<<< HEAD
             len
-=======
->>>>>>> 197e7618634f0502bb373e3eb031cb7f70ae5e5a
         })
     }
 }
