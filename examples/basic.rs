@@ -28,10 +28,9 @@ pub extern "C" fn update(mut data: DataStruct) -> DataStruct{
 
     let tag = String::from("Player"); // Get the tag for "Player". Will panic if it fails to allocate.
 
-    let player_obj = data.game_object.get_gameobject_from_tag(tag); // Get the game object associated with the tag
+    let player_obj = data.game_object.get_gameobject_from_tag(&tag); // Get the game object associated with the tag
 
     let pos_to_go_towards = player_obj.transform.position; // get the position of the player
-
 
     data.transform.position = Vector3::lerp(data.transform.position, pos_to_go_towards, 0.0015 * time.delta_time); // move towards the player using lerp, scaling to the timestep
 

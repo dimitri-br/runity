@@ -1,4 +1,4 @@
-use crate::{String, Transform, free_ptr};
+use crate::{String, Transform};
 
 use libc::c_char;
 
@@ -25,13 +25,7 @@ impl GameObject{
     /// # Get GameObject from tag
     ///
     /// Takes a string, returns the gameobject attached to the associated tag.
-    pub fn get_gameobject_from_tag(&self, tag: String) -> Self{
+    pub fn get_gameobject_from_tag(&self, tag: &String) -> Self{
         (self.get_gameobject_from_tag_callback)(tag.ptr, tag.len)
-    }
-}
-
-impl Drop for GameObject{
-    fn drop(&mut self) {
-        free_ptr(self.tag);
     }
 }
