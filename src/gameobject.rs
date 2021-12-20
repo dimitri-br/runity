@@ -14,7 +14,7 @@ use libc::c_char;
 #[repr(C)]
 pub struct GameObject{
     /* gameobject info */
-    pub tag: *mut c_char,
+    pub tag: String,
     pub transform: Transform,
 
     /* function pointers */

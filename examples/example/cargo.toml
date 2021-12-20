@@ -10,5 +10,6 @@ edition = "2018"
 name = "dll_name"
 crate-type = ["cdylib"]
 
+
 [dependencies]
 runity = { git = "https://github.com/dimitribobkov/runity.git" } # This will be always up to date.
