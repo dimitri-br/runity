@@ -30,7 +30,7 @@ namespace runity_test
 
         public static void Free(IntPtr ptr)
         {
-            Marshal.FreeCoTaskMem(ptr);
+            
         }
     }
 
@@ -157,26 +157,20 @@ namespace runity_test
         }
 
         /// <summary>
-        /// Unload all will unload all DLL's currently pooled.
+        /// Unload all will unload a given DLL
         /// 
-        /// Should be run on exit or on destruction of this gameobject.
+        /// Should be run on exit or on destruction.
         /// </summary>
-        public static void UnloadAll()
+        public static void UnloadDLL(string dllName)
         {
-            Debug.Log("Total DLLs currently loaded: " + dllPool.Count);
-            // This is important - free all our loaded libraries
-            foreach (string name in dllPool.Keys)
+            Debug.Log("Attempting to unload DLL: " + dllName);
+            if (dllPool.ContainsKey(dllName))
             {
-                Debug.Log("Releasing DLL: " + name);
-                NativeMethods.FreeLibrary(dllPool[name]);
-
+                Debug.Log("DLL exists in pool, releasing...");
+                NativeMethods.FreeLibrary(dllPool[dllName]);
+                dllPool.Remove(dllName);
+                Debug.Log("DLL successfully released!");
             }
-        }
-
-        // Cleanup - unload dll's
-        private void OnDestroy()
-        {
-            DLLPool.UnloadAll();
         }
     }
 }

@@ -18,7 +18,7 @@ using System.Reflection;
 
 namespace runity_test
 {
-    public class runity : MonoBehaviour
+    public class Runity : MonoBehaviour
     {
         /* Variables */
 
@@ -42,6 +42,7 @@ namespace runity_test
         // processing time reloading the DLL
         StartDelegate start;
         UpdateDelegate update;
+        DestroyDelegate destroy;
 
         // A string builder to go from pointer to string, GC free. Only supports 128 chars
         StringBuilder stringBuilder = new StringBuilder(128, 128);
@@ -54,7 +55,9 @@ namespace runity_test
         bool runStart;
         bool runUpdate;
 
-        /* Import our functions (start, update and awake) as delegates, as they will be pointers to the functions
+        // We don't have an optional destroy function - this must exist.
+
+        /* Import our functions (start, update, destroy and awake) as delegates, as they will be pointers to the functions
          * since we want to load them dynamically at runtime 
          */
 
@@ -64,10 +67,20 @@ namespace runity_test
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate DataStruct UpdateDelegate(DataStruct data);
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate DataStruct DestroyDelegate(DataStruct data);
+
 
         /* Define the structs to use to interface with rust with. This gives
          * the option to implement safe, rust compatiable datatypes which
          * we can't guarantee with unity */
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct String
+        {
+            public IntPtr ptr;
+            public Int32 len;
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         public struct Vector3
@@ -96,7 +109,7 @@ namespace runity_test
         [StructLayout(LayoutKind.Sequential)]
         public struct GameObject
         {
-            public IntPtr tag;
+            public String tag;
             public Transform transform;
             public FindGameObjectWithTagDelegate GetGameObjectByTag;
         }
@@ -131,7 +144,7 @@ namespace runity_test
 
         /* Define our delegates, which are callbacks to functions we want to use 
          * in rust */
-        public delegate GameObject FindGameObjectWithTagDelegate(IntPtr name, int len); // This delegate acts as FindGameObjectWithTag
+        public delegate GameObject FindGameObjectWithTagDelegate(String tag); // This delegate acts as FindGameObjectWithTag
 
 
         /* Run built-in unity functions */
@@ -142,9 +155,11 @@ namespace runity_test
 
             if (startPtr != IntPtr.Zero)
             {
-                Debug.Log("Running function!");
                 runStart = true;
+                Debug.Log("Start function loaded");
                 start = (StartDelegate)startFunction;
+            }else{
+                Debug.LogWarning("Start function not loaded");
             }
 
 
@@ -152,12 +167,22 @@ namespace runity_test
 
             if (updatePtr != IntPtr.Zero)
             {
-                Debug.Log("Running function!");
                 runUpdate = true;
+                Debug.Log("Update function loaded");
                 update = (UpdateDelegate)updateFunction;
+            }else{
+                Debug.LogWarning("Update function not loaded");
             }
 
+            (Delegate destroyFunction, IntPtr destroyPtr) = DLLPool.LoadFunctionFromDLL(DLLName, "destroy", typeof(DestroyDelegate));
 
+            if (destroyPtr != IntPtr.Zero)
+            {
+                Debug.Log("Destroy function loaded");
+                destroy = (DestroyDelegate)destroyFunction;
+            }else{
+                Debug.LogError("Destroy function not loaded");
+            }
 
             // We now assign our delegates to point to our functions.
 
@@ -237,8 +262,8 @@ namespace runity_test
         private void OnDestroy()
         {
             // This is VERY important, we must free and release the link before we exit!
-            NativeMethods.Free(m_gameObject.tag);
-            Debug.Log("Released pointers properly");
+            dataStruct = destroy(dataStruct);
+            DLLPool.UnloadDLL(DLLName);
         }
 
         /// <summary>
@@ -267,7 +292,7 @@ namespace runity_test
         /* We can now define the functions we want to expose to rust */
 
         // This method converts `FindGameObjectWithTag` into our custom defined structs
-        public GameObject GetGameObjectFromTag(IntPtr tag, int len)
+        public GameObject GetGameObjectFromTag(String tag)
         {
             GameObject gameObject = new GameObject { transform = new Transform { position = new Vector3 { x = 0, y = 0, z = 0, } } };
 
@@ -280,9 +305,9 @@ namespace runity_test
 
             stringBuilder.Clear();
 
-            for (int i = 0; i < len; i++)
+            for (int i = 0; i < tag.len; i++)
             {
-                stringBuilder.Append((char)Marshal.ReadByte(tag + i));
+                stringBuilder.Append((char)Marshal.ReadByte(tag.ptr + i));
             }
 
             // This long, complex code basically checks that the object exists in the pool. If it doesn't, we add it. 
@@ -317,7 +342,7 @@ namespace runity_test
                 foundObj = UnityEngine.GameObject.FindGameObjectWithTag(stringBuilder.ToString());
                 if (foundObj == null)
                 {
-                    Debug.LogWarning("Warning: Tag -> " + stringBuilder.ToString()  + " was not found. Falling back to default transform. ");
+                    Debug.LogWarning("Warning: Tag -> " + stringBuilder.ToString()  + " was not found. Falling back to default transform. (all values zeroed) ");
                     Transform transform = new Transform
                     {
                         position = new Vector3 { x = 0, y = 0, z = 0 },

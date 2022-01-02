@@ -18,14 +18,16 @@ pub struct GameObject{
     pub transform: Transform,
 
     /* function pointers */
-    get_gameobject_from_tag_callback: extern fn(*const c_char, i32) -> GameObject,
+    get_gameobject_from_tag_callback: extern fn(&String) -> GameObject,
 }
 
 impl GameObject{
     /// # Get GameObject from tag
     ///
     /// Takes a string, returns the gameobject attached to the associated tag.
+    /// 
+    /// The string is consumed, so it is not possible to use the string after this function.
     pub fn get_gameobject_from_tag(&self, tag: &String) -> Self{
-        (self.get_gameobject_from_tag_callback)(tag.ptr, tag.len)
+        (self.get_gameobject_from_tag_callback)(tag)
     }
 }
