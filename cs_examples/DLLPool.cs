@@ -31,13 +31,6 @@ namespace runity_test
 
     public class DLLPool: MonoBehaviour
     {
-        /// Here we store the Loaded DLL's in a dictionary.
-        ///
-        /// The key is the DLL's name. This must be a unique, identifying string.
-        ///
-        /// The value is the DLL's handle (a pointer to the DLL) as well as an integer
-        /// which stores the number of currently loaded instances of the DLL. This allows
-        /// us to safely unload the DLL when we no longer need it (by ensuring that we've got no more active instances).
         public static Dictionary<string, (IntPtr, int)> dllPool = new Dictionary<string, (IntPtr, int)>();
 
         private static DLLPool instance;
@@ -199,7 +192,7 @@ namespace runity_test
                     Debug.Log("DLL references still loaded: " + val.Item2);
                     val.Item2 -= 1;
                 }
-
+                dllPool[dllName] = val;
             }
         }
     }
