@@ -149,8 +149,12 @@ namespace runity_test
 
         /* Run built-in unity functions */
 
-        void Awake()
+        // Start is called before the first frame update
+        void Start()
         {
+            // Load the DLL. This is important, as the DLL must be loaded before we can call any functions
+            DLLPool.LoadDLL(DLLName);
+
             (Delegate startFunction, IntPtr startPtr) = DLLPool.LoadFunctionFromDLL(DLLName, "start", typeof(StartDelegate));
 
             if (startPtr != IntPtr.Zero)
@@ -158,7 +162,9 @@ namespace runity_test
                 runStart = true;
                 Debug.Log("Start function loaded");
                 start = (StartDelegate)startFunction;
-            }else{
+            }
+            else
+            {
                 Debug.LogWarning("Start function not loaded");
             }
 
@@ -170,7 +176,9 @@ namespace runity_test
                 runUpdate = true;
                 Debug.Log("Update function loaded");
                 update = (UpdateDelegate)updateFunction;
-            }else{
+            }
+            else
+            {
                 Debug.LogWarning("Update function not loaded");
             }
 
@@ -180,7 +188,9 @@ namespace runity_test
             {
                 Debug.Log("Destroy function loaded");
                 destroy = (DestroyDelegate)destroyFunction;
-            }else{
+            }
+            else
+            {
                 Debug.LogError("Destroy function not loaded");
             }
 
@@ -192,12 +202,9 @@ namespace runity_test
             dataStruct = new DataStruct { };
 
             m_time = new Time { };
-        }
 
+            // Now start
 
-        // Start is called before the first frame update
-        void Start()
-        {
             if (runStart)
             {
                 m_transform.position = new Vector3 { x = 0, y = 0, z = 0 };
@@ -333,7 +340,8 @@ namespace runity_test
                     rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w }
                 };
                 gameObject.transform = transform;
-                gameObject.tag = tag;
+                gameObject.tag = tag; // This assigns a borrowed string to the gameObject's tag. This is fairly unsafe behavior in rust. Therefore, the GameObject returned 
+                                      // from this function is read-only.
             }
             else
             {

@@ -27,16 +27,18 @@ namespace runity_test
 
         [DllImport("kernel32.dll")]
         public static extern bool FreeLibrary(IntPtr hModule);
-
-        public static void Free(IntPtr ptr)
-        {
-            
-        }
     }
 
     public class DLLPool: MonoBehaviour
     {
-        public static Dictionary<string, IntPtr> dllPool = new Dictionary<string, IntPtr>();
+        /// Here we store the Loaded DLL's in a dictionary.
+        ///
+        /// The key is the DLL's name. This must be a unique, identifying string.
+        ///
+        /// The value is the DLL's handle (a pointer to the DLL) as well as an integer
+        /// which stores the number of currently loaded instances of the DLL. This allows
+        /// us to safely unload the DLL when we no longer need it (by ensuring that we've got no more active instances).
+        public static Dictionary<string, (IntPtr, int)> dllPool = new Dictionary<string, (IntPtr, int)>();
 
         private static DLLPool instance;
         public static DLLPool Instance { get { return instance; } }
@@ -56,19 +58,33 @@ namespace runity_test
         /// <summary>
         /// This function loads a DLL from the stored dictionary.
         /// 
-        /// This helps you save time by loading DLL's loaded already, rather than load them again
+        /// This helps you save time by loading DLL's loaded already, rather than load them again.
+        /// 
+        /// IsLoad should only be set if the DLL is being loaded by a script for the first time.
         /// </summary>
         /// <param name="dllName"></param>
         /// <returns></returns>
-        public static IntPtr GetDLL(string dllName)
+        private static IntPtr GetDLL(string dllName, bool isLoad)
         {
             if (dllPool.ContainsKey(dllName))
             {
-                return dllPool[dllName];
+                var val = dllPool[dllName];
+                if (isLoad)
+                {
+                    val.Item2 = val.Item2 + 1; // New reference, so we increase the count
+                    Debug.Log("Living References: " + val.Item2);
+
+                    // reassign the value
+                    dllPool[dllName] = val;
+                }
+
+                return dllPool[dllName].Item1;
             }
 
             return IntPtr.Zero;
         }
+
+
 
         /// <summary>
         /// This function takes the name of the DLL to load
@@ -79,9 +95,14 @@ namespace runity_test
         /// <returns></returns>
         public static IntPtr LoadDLL(string dllName)
         {
-            if (GetDLL(dllName) != IntPtr.Zero)
+            if (GetDLL(dllName, false) != IntPtr.Zero)
             {
-                return GetDLL(dllName);
+                Debug.Log("DLL Exists! Loading...");
+                return GetDLL(dllName, true);
+            }
+            else
+            {
+                Debug.Log("DLL does not exist! Loading new...");
             }
 
             //Get the path of the Game data folder
@@ -108,7 +129,7 @@ namespace runity_test
             }
 
             // Add the pointer to our pool.
-            dllPool.Add(dllName, loadedDLLPtr);
+            dllPool.Add(dllName, (loadedDLLPtr, 1));
 
             return loadedDLLPtr;
         }
@@ -126,17 +147,15 @@ namespace runity_test
             try
             {
                 IntPtr dllPtr = (IntPtr)0;
-                // We check that the DLL is loaded. If it isn't, we load it. Once we've loaded it, we then load the function.
-                if (GetDLL(dllName) != IntPtr.Zero)
+                // We check that the DLL is loaded. If it isn't, throw an exception. Once we've loaded it, we then load the function.
+                if (GetDLL(dllName, false) != IntPtr.Zero)
                 {
                     Debug.Log("DLL exists in pool, loading from pool...");
-                    dllPtr = GetDLL(dllName);
+                    dllPtr = GetDLL(dllName, false);
                 }
                 else
                 {
-                    Debug.Log("DLL not loaded, loading DLL...");
-                    dllPtr = LoadDLL(dllName);
-
+                    throw new Exception("Error - DLL not loaded");
                 }
 
                 IntPtr functionPtr = NativeMethods.GetProcAddress(dllPtr, functionName);
@@ -166,10 +185,21 @@ namespace runity_test
             Debug.Log("Attempting to unload DLL: " + dllName);
             if (dllPool.ContainsKey(dllName))
             {
-                Debug.Log("DLL exists in pool, releasing...");
-                NativeMethods.FreeLibrary(dllPool[dllName]);
-                dllPool.Remove(dllName);
-                Debug.Log("DLL successfully released!");
+                // Check that the reference count is equal to 0 (item2)
+                var val = dllPool[dllName];
+                if (val.Item2 == 1)
+                {
+                    Debug.Log("DLL exists in pool, releasing...");
+                    NativeMethods.FreeLibrary(dllPool[dllName].Item1);
+                    dllPool.Remove(dllName);
+                    Debug.Log("DLL successfully released!");
+                }
+                else
+                {
+                    Debug.Log("DLL references still loaded: " + val.Item2);
+                    val.Item2 -= 1;
+                }
+
             }
         }
     }
