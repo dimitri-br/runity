@@ -1,7 +1,5 @@
 use crate::{String, Transform};
 
-use libc::c_char;
-
 /// # GameObject
 ///
 /// This is a representation of a gameobject in rust.
@@ -26,7 +24,8 @@ impl GameObject{
     ///
     /// Takes a string, returns the gameobject attached to the associated tag.
     /// 
-    /// The string is consumed, so it is not possible to use the string after this function.
+    /// The returned gameobject is a read-only gameobject, meaning that it cannot be modified.
+    /// Any modifications to the gameobject is undefined behaviour.
     pub fn get_gameobject_from_tag(&self, tag: &String) -> Self{
         (self.get_gameobject_from_tag_callback)(tag)
     }
