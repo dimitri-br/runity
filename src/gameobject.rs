@@ -16,7 +16,7 @@ pub struct GameObject{
     pub transform: Transform,
 
     /* function pointers */
-    get_gameobject_from_tag_callback: extern fn(&String) -> GameObject,
+    get_gameobject_from_tag_callback: extern "stdcall" fn(&String) -> GameObject,
 }
 
 impl GameObject{

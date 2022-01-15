@@ -5,7 +5,7 @@ using TMPro;
 using System.Collections.Generic;
 using UnityEngine.Scripting;
 using System.Text;
-using System.Reflection;
+using System.Buffers;
 
 [assembly: Preserve]
 
@@ -44,11 +44,8 @@ namespace runity_test
         UpdateDelegate update;
         DestroyDelegate destroy;
 
-        // A string builder to go from pointer to string, GC free. Only supports 128 chars
-        StringBuilder stringBuilder = new StringBuilder(128, 128);
-
         // An object pool to avoid calling Find on gameobjects every frame
-        Dictionary<StringBuilder, UnityEngine.GameObject> objectPool = new Dictionary<StringBuilder, UnityEngine.GameObject>();
+        Dictionary<string, UnityEngine.GameObject> objectPool = new Dictionary<string, UnityEngine.GameObject>();
 
         // We use these booleans to check if we should run the respective unity functions.
         // This is so we can check collisions conditionally.
@@ -299,6 +296,32 @@ namespace runity_test
         /* We can now define the functions we want to expose to rust */
 
         // This method converts `FindGameObjectWithTag` into our custom defined structs
+
+        /// <summary>
+        /// This method converts a given pointer into a string.
+        ///
+        /// It uses an ArrayPool to allocate a buffer and then copies the string into it.
+        /// </summary>
+        /// <param name="ptr">The pointer to convert</param>
+        /// <returns>The string</returns>
+        private string NativeToString(IntPtr ptr, int length)
+        {
+            // Allocate a buffer
+            var buffer = ArrayPool<byte>.Shared.Rent(length);
+
+            // Copy the string into the buffer
+            Marshal.Copy(ptr, buffer, 0, length);
+
+            // Convert the buffer into a string
+            var str = Encoding.UTF8.GetString(buffer, 0, length);
+
+            // Release the buffer to avoid memory leaks
+            ArrayPool<byte>.Shared.Return(buffer);
+
+            return str;
+        }
+
+
         public GameObject GetGameObjectFromTag(String tag)
         {
             GameObject gameObject = new GameObject { transform = new Transform { position = new Vector3 { x = 0, y = 0, z = 0, } } };
@@ -306,16 +329,8 @@ namespace runity_test
             // We check if the object with its tag is not already pooled. If it is, we make sure it hasn't been destroyed and then take it from the pool.
             // otherwise, we load it and add it to the pool
 
-           // This will convert the pointer to a stringbuilder,
-           // which is a 0 alloc and fast alternative to a string.
-           // This is what we use to index the dictionary.
-
-            stringBuilder.Clear();
-
-            for (int i = 0; i < tag.len; i++)
-            {
-                stringBuilder.Append((char)Marshal.ReadByte(tag.ptr + i));
-            }
+            // Convert the tag into a string
+            var tagString = NativeToString(tag.ptr, tag.len);
 
             // This long, complex code basically checks that the object exists in the pool. If it doesn't, we add it. 
             //
@@ -324,14 +339,14 @@ namespace runity_test
             // If it doesn't find the gameobject, it defaults to zero for pos and rot. This is simply a fallback.
             UnityEngine.GameObject foundObj;
 
-            if (objectPool.TryGetValue(stringBuilder, out foundObj))
+            if (objectPool.TryGetValue(tagString, out foundObj))
             {
                 // Make sure it isn't a false positive, and return the value.
                 // If it is, find it and store it.
                 if (foundObj == null)
                 {
-                    foundObj = UnityEngine.GameObject.FindGameObjectWithTag(stringBuilder.ToString());
-                    objectPool.Add(stringBuilder, foundObj);
+                    foundObj = UnityEngine.GameObject.FindGameObjectWithTag(tagString);
+                    objectPool.Add(tagString, foundObj);
                 }
 
                 Transform transform = new Transform
@@ -347,10 +362,10 @@ namespace runity_test
             {
                 // Our requested object hasn't been found, so now we search it. If it doesn't exist, return
                 // a default value. If it does, store it and return the value.
-                foundObj = UnityEngine.GameObject.FindGameObjectWithTag(stringBuilder.ToString());
+                foundObj = UnityEngine.GameObject.FindGameObjectWithTag(tagString);
                 if (foundObj == null)
                 {
-                    Debug.LogWarning("Warning: Tag -> " + stringBuilder.ToString()  + " was not found. Falling back to default transform. (all values zeroed) ");
+                    Debug.LogWarning("Warning: Tag -> " + tagString  + " was not found. Falling back to default transform. (all values zeroed) ");
                     Transform transform = new Transform
                     {
                         position = new Vector3 { x = 0, y = 0, z = 0 },
@@ -367,8 +382,8 @@ namespace runity_test
                         rotation = new Quaternion { x = foundObj.transform.rotation.x, y = foundObj.transform.rotation.y, z = foundObj.transform.rotation.z, w = foundObj.transform.rotation.w }
                     };
                     gameObject.transform = transform;
-                    gameObject.tag = tag;
-                    objectPool.Add(stringBuilder, foundObj);
+                    gameObject.tag = tag; //  This is pretty unsafe as the tag is read-only, but the returned GameObject can be modified.
+                    objectPool.Add(tagString, foundObj);
                 }
             }
 

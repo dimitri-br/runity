@@ -27,7 +27,6 @@ pub extern "C" fn update(mut data: DataStruct) -> DataStruct{
     let time = data.time; // Extract time related things.
 
     let tag = String::from("Player"); // Get the tag for "Player". Will panic if it fails to allocate.
-    tag.len = 5;
 
     let player_obj = data.game_object.get_gameobject_from_tag(&tag); // Get the game object associated with the tag
 
