@@ -6,7 +6,7 @@ mod data;
 mod gameobject;
 mod string;
 mod time;
-
+mod debug;
 
 /// Define a NULL ptr for our string. This will help us
 /// prevent allocating an invalid string
@@ -23,3 +23,4 @@ pub use data::DataStruct;
 pub use string::String;
 pub use quaternion::Quaternion;
 pub use time::Time;
+use debug::Debug;

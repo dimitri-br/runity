@@ -1,4 +1,4 @@
-use crate::{GameObject, Transform, Time};
+use crate::{GameObject, Transform, Time, Debug};
 
 /// # DataStruct
 ///
@@ -9,4 +9,5 @@ pub struct DataStruct{
     pub transform: Transform,
     pub game_object: GameObject,
     pub time: Time,
+    pub debug: Debug,
 }

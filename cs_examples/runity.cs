@@ -112,14 +112,6 @@ namespace runity_test
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct DataStruct
-        {
-            public Transform transform;
-            public GameObject gameObject;
-            public Time time;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
         public struct Time
         {
             public float deltaTime;
@@ -139,20 +131,47 @@ namespace runity_test
             public float unscaledTime;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Debug{
+            public LogDelegate log;
+            public LogWarningDelegate logWarning;
+            public LogErrorDelegate logError;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct DataStruct
+        {
+            public Transform transform;
+            public GameObject gameObject;
+            public Time time;
+            public Debug debug;
+        }
+
         /* Define our delegates, which are callbacks to functions we want to use 
          * in rust */
+
+        /* GameObject functions */
 
         // We ensure that the delegate is defined as an unmanaged function pointer
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void FindGameObjectWithTagDelegate(String tag, IntPtr gameObjectPtr); // This delegate acts as FindGameObjectWithTag
 
+        /* Logging/Debug functions */
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void LogDelegate(String message); // This delegate acts as Unity's log
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void LogWarningDelegate(String message); // This delegate acts as Unity's logWarning
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void LogErrorDelegate(String message); // This delegate acts as Unity's logError
+
 
         /* Run built-in unity functions */
 
-        // Start is called before the first frame update
-        void Start()
-        {
-            // Load the DLL. This is important, as the DLL must be loaded before we can call any functions
+        void Awake(){
+                        // Load the DLL. This is important, as the DLL must be loaded before we can call any functions
             DLLPool.LoadDLL(DLLName);
 
             (Delegate startFunction, IntPtr startPtr) = DLLPool.LoadFunctionFromDLL(DLLName, "start", typeof(StartDelegate));
@@ -160,12 +179,12 @@ namespace runity_test
             if (startPtr != IntPtr.Zero)
             {
                 runStart = true;
-                Debug.Log("Start function loaded");
+                UnityEngine.Debug.Log("Start function loaded");
                 start = (StartDelegate)startFunction;
             }
             else
             {
-                Debug.LogWarning("Start function not loaded");
+                UnityEngine.Debug.LogWarning("Start function not loaded");
             }
 
 
@@ -174,24 +193,24 @@ namespace runity_test
             if (updatePtr != IntPtr.Zero)
             {
                 runUpdate = true;
-                Debug.Log("Update function loaded");
+                UnityEngine.Debug.Log("Update function loaded");
                 update = (UpdateDelegate)updateFunction;
             }
             else
             {
-                Debug.LogWarning("Update function not loaded");
+                UnityEngine.Debug.LogWarning("Update function not loaded");
             }
 
             (Delegate destroyFunction, IntPtr destroyPtr) = DLLPool.LoadFunctionFromDLL(DLLName, "destroy", typeof(DestroyDelegate));
 
             if (destroyPtr != IntPtr.Zero)
             {
-                Debug.Log("Destroy function loaded");
+                UnityEngine.Debug.Log("Destroy function loaded");
                 destroy = (DestroyDelegate)destroyFunction;
             }
             else
             {
-                Debug.LogError("Destroy function not loaded");
+                UnityEngine.Debug.LogError("Destroy function not loaded");
             }
 
             // We now assign our delegates to point to our functions.
@@ -202,7 +221,11 @@ namespace runity_test
             dataStruct = new DataStruct { };
 
             m_time = new Time { };
+        }
 
+        // Start is called before the first frame update
+        void Start()
+        {
             // Now start
 
             if (runStart)
@@ -220,6 +243,8 @@ namespace runity_test
                 SetTime();
 
                 dataStruct.time = m_time;
+
+                dataStruct.debug = new Debug { log = new LogDelegate(Log), logWarning = new LogWarningDelegate(LogWarning), logError = new LogErrorDelegate(LogError) };
 
                 dataStruct = start(dataStruct);
 
@@ -371,7 +396,7 @@ namespace runity_test
                 foundObj = UnityEngine.GameObject.FindGameObjectWithTag(tagString);
                 if (foundObj == null)
                 {
-                    Debug.LogWarning("Warning: Tag -> " + tagString  + " was not found. Falling back to default transform. (all values zeroed) ");
+                    UnityEngine.Debug.LogWarning("Warning: Tag -> " + tagString  + " was not found. Falling back to default transform. (all values zeroed) ");
                     Transform transform = new Transform
                     {
                         position = new Vector3 { x = 0, y = 0, z = 0 },
@@ -394,6 +419,24 @@ namespace runity_test
             } 
             // Now copy the newly created GameObject into the gameObjectPtr
             Marshal.StructureToPtr(gameObject, gameObjectPtr, false);
+        }
+
+        public void Log(String message)
+        {
+            string messageString = NativeToString(message.ptr, message.len);
+            UnityEngine.Debug.Log(messageString);
+        }
+
+        public void LogWarning(String message)
+        {
+            string messageString = NativeToString(message.ptr, message.len);
+            UnityEngine.Debug.LogWarning(messageString);
+        }
+
+        public void LogError(String message)
+        {
+            string messageString = NativeToString(message.ptr, message.len);
+            UnityEngine.Debug.LogError(messageString);
         }
     }
 }
