@@ -36,6 +36,8 @@ pub extern "C" fn update(mut data: DataStruct) -> DataStruct{
 
     data.transform.rotation *= Quaternion::from_euler(5.0 * time.delta_time, 5.0 * time.delta_time, 5.0 * time.delta_time);
 
+    data.debug.log("Hello World!".to_string());
+
     tag.free(); // free the tag
 
     data
