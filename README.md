@@ -36,3 +36,5 @@ Then, create any gameobject and attach `runity.cs` to it. It takes in one parame
 
 ![image](https://user-images.githubusercontent.com/30769396/116154299-69a15d00-a6e0-11eb-867a-e82f868538c1.png)
 
+
+Runity does not aim to implement all Unity types. It will provide a base to expand upon. It will, however, provide enough to modify transforms as well as provide functions such as getting gameobjects. The examples provided should give a good idea on how to use and expand runity to fit your needs.
