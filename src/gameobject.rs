@@ -1,4 +1,4 @@
-use crate::{String, Transform};
+use crate::{String, Transform, Vector3, Quaternion};
 
 /// # GameObject
 ///
@@ -16,7 +16,9 @@ pub struct GameObject{
     pub transform: Transform,
 
     /* function pointers */
-    get_gameobject_from_tag_callback: extern "stdcall" fn(&String) -> GameObject,
+
+    // Get gameobject by tag - this takes in a string and a pointer to a gameobject
+    get_gameobject_from_tag_callback: extern "C" fn(&String, *mut GameObject),
 }
 
 impl GameObject{
@@ -27,6 +29,19 @@ impl GameObject{
     /// The returned gameobject is a read-only gameobject, meaning that it cannot be modified.
     /// Any modifications to the gameobject is undefined behaviour.
     pub fn get_gameobject_from_tag(&self, tag: &String) -> Self{
-        (self.get_gameobject_from_tag_callback)(tag)
+        // Create a new gameobject using this gameobject's function pointer
+        let mut gameobject = GameObject{
+            tag: tag.clone(),
+            transform: Transform::new(Vector3::new(0.0, 0.0, 0.0), Quaternion::new(0.0, 0.0, 0.0, 0.0)),
+            get_gameobject_from_tag_callback: self.get_gameobject_from_tag_callback,
+        };
+
+        // Convert the gameobject to a mutable gameobject pointer
+        let gameobject_ptr = &mut gameobject as *mut GameObject;
+
+        (self.get_gameobject_from_tag_callback)(tag, gameobject_ptr);
+
+        // Return the gameobject
+        gameobject
     }
 }

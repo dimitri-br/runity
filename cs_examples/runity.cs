@@ -141,7 +141,10 @@ namespace runity_test
 
         /* Define our delegates, which are callbacks to functions we want to use 
          * in rust */
-        public delegate GameObject FindGameObjectWithTagDelegate(String tag); // This delegate acts as FindGameObjectWithTag
+
+        // We ensure that the delegate is defined as an unmanaged function pointer
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void FindGameObjectWithTagDelegate(String tag, IntPtr gameObjectPtr); // This delegate acts as FindGameObjectWithTag
 
 
         /* Run built-in unity functions */
@@ -322,9 +325,12 @@ namespace runity_test
         }
 
 
-        public GameObject GetGameObjectFromTag(String tag)
+        public void GetGameObjectFromTag(String tag, IntPtr gameObjectPtr)
         {
-            GameObject gameObject = new GameObject { transform = new Transform { position = new Vector3 { x = 0, y = 0, z = 0, } } };
+            // The gameObjectPtr is a pointer to a GameObject. This will be modified by this code and then used by rust.
+
+            // Convert the IntPtr to a GameObject
+            GameObject gameObject = Marshal.PtrToStructure<GameObject>(gameObjectPtr);
 
             // We check if the object with its tag is not already pooled. If it is, we make sure it hasn't been destroyed and then take it from the pool.
             // otherwise, we load it and add it to the pool
@@ -385,10 +391,9 @@ namespace runity_test
                     gameObject.tag = tag; //  This is pretty unsafe as the tag is read-only, but the returned GameObject can be modified.
                     objectPool.Add(tagString, foundObj);
                 }
-            }
-
-            return gameObject;
+            } 
+            // Now copy the newly created GameObject into the gameObjectPtr
+            Marshal.StructureToPtr(gameObject, gameObjectPtr, false);
         }
     }
-
 }
