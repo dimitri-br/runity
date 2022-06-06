@@ -18,7 +18,7 @@ pub struct String{
 }
 
 impl String{
-    // Free the string
+    // Free the string. *very* important to call this!
     pub fn free(&self){
         unsafe{
             if self.ptr.is_null() {

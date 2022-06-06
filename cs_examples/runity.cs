@@ -65,7 +65,7 @@ namespace runity_test
         private delegate DataStruct UpdateDelegate(DataStruct data);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate DataStruct DestroyDelegate(DataStruct data);
+        private delegate int DestroyDelegate(DataStruct data);
 
 
         /* Define the structs to use to interface with rust with. This gives
@@ -294,7 +294,7 @@ namespace runity_test
         private void OnDestroy()
         {
             // This is VERY important, we must free and release the link before we exit!
-            dataStruct = destroy(dataStruct);
+            int value = destroy(dataStruct);
             DLLPool.UnloadDLL(DLLName);
         }
 
