@@ -12,8 +12,8 @@ mod debug;
 /// prevent allocating an invalid string
 const NULL: *mut c_char = null::<c_char>() as *mut c_char;
 
-use libc::{c_char};
-use std::{ptr::null};
+use libc::c_char;
+use std::ptr::null;
 
 pub use vector3::Vector3;
 pub use transform::Transform;
