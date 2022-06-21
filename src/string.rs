@@ -1,9 +1,9 @@
-use std::{ffi::{CStr, CString}};
+use std::ffi::{CStr, CString};
 
 use libc::c_char;
 
 
-use crate::{NULL};
+use crate::NULL;
 
 /// # String
 ///

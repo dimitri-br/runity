@@ -1,6 +1,6 @@
 use std::{f32::INFINITY, ops::BitAnd};
 
-use std::f32::consts::{PI};
+use std::f32::consts::PI;
 use std::f32::EPSILON;
 
 use num::{Float, Integer};
