@@ -24,3 +24,25 @@ pub struct Time{
     pub unscaled_delta_time: f32,
     pub unscaled_time: f32
 }
+
+impl Default for Time{
+    fn default() -> Self{
+        Self{
+            delta_time: 0.0,
+            fixed_delta_time: 0.0,
+            fixed_time: 0.0,
+            fixed_unscaled_delta_time: 0.0,
+            fixed_unscaled_time: 0.0,
+            frame_count: 0.0,
+            maximum_delta_time: 0.0,
+            maximum_particle_delta_time: 0.0,
+            real_time_since_startup: 0.0,
+            smooth_delta_time: 0.0,
+            time: 0.0,
+            time_scale: 0.0,
+            time_since_level_load: 0.0,
+            unscaled_delta_time: 0.0,
+            unscaled_time: 0.0
+        }
+    }
+}

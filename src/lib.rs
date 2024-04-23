@@ -18,6 +18,7 @@ use std::ptr::null;
 pub use vector3::Vector3;
 pub use transform::Transform;
 pub use gameobject::GameObject;
+use gameobject::GameObjectChanges;
 pub use math::Math;
 pub use data::DataStruct;
 pub use string::String;

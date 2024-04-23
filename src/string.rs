@@ -29,6 +29,19 @@ impl String{
     }
 }
 
+impl Drop for String{
+    /// Drop the string
+    fn drop(&mut self){
+        self.free();
+    }
+}
+
+/* Send + Sync */
+
+unsafe impl Send for String{}
+unsafe impl Sync for String{}
+
+/* Conversion */
 
 
 impl From<CString> for String{

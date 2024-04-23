@@ -12,6 +12,7 @@ use crate::{String, Transform, Vector3, Quaternion};
 #[repr(C)]
 pub struct GameObject{
     /* gameobject info */
+    hash: u64, // This is a hash of the gameobject, used to identify the gameobject
     pub tag: String,
     pub transform: Transform,
 
@@ -31,6 +32,7 @@ impl GameObject{
     pub fn get_gameobject_from_tag(&self, tag: &String) -> Self{
         // Create a new gameobject using this gameobject's function pointer
         let mut gameobject = GameObject{
+            hash: 0,
             tag: tag.clone(),
             transform: Transform::new(Vector3::new(0.0, 0.0, 0.0), Quaternion::new(0.0, 0.0, 0.0, 0.0)),
             get_gameobject_from_tag_callback: self.get_gameobject_from_tag_callback,
@@ -43,5 +45,29 @@ impl GameObject{
 
         // Return the gameobject
         gameobject
+    }
+}
+
+/// # GameObject changes
+/// 
+/// This struct stores all the changes that have been made to a gameobject.
+/// 
+/// This allows for efficient changes to be made to a gameobject, and then sent to the unity engine.
+#[repr(C)]
+#[derive(Clone)]
+pub struct GameObjectChanges{
+    hash: u64,
+    pub tag: String,
+    pub transform: Transform,
+}
+
+impl From<GameObject> for GameObjectChanges{
+    /// Convert a gameobject to a gameobject changes
+    fn from(gameobject: GameObject) -> Self{
+        Self{
+            hash: gameobject.hash,
+            tag: gameobject.tag.clone(),
+            transform: gameobject.transform.clone(),
+        }
     }
 }

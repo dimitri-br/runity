@@ -6,6 +6,7 @@ use crate::{Vector3, Quaternion};
 /// function pointers as it is cheaper to run most (such as child searching) through pointers rather than
 /// natively. However, some, such as `translate` will be natively implemented.
 #[repr(C)]
+#[derive(Clone)]
 pub struct Transform{
     pub position: Vector3,
     pub rotation: Quaternion,
